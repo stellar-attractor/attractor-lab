@@ -38,3 +38,19 @@ and enables fully reproducible media-ready PDFs.
 
 The solution is editor-agnostic (works in Windsurf) and does not rely on
 LaTeX relative paths, ensuring long-term maintainability.
+
+---
+
+## Data → Figure → PDF pipeline validated (TOP_0001)
+
+Validated a full end-to-end pipeline using a synthetic dataset:
+
+- Topic-local processed data stored under `data/processed/`.
+- Reusable loaders and plotting functions added to `lulab`.
+- Topic-level figure build script generates reproducible figures (FIG_001).
+- Figures are excluded from version control and treated as build artifacts.
+- Generated figures are embedded into LaTeX and compiled into PDF deliverables.
+
+This confirms that the project infrastructure supports reproducible,
+data-driven narrative content, with a clean separation between
+source-of-truth (data + code) and generated artifacts.
