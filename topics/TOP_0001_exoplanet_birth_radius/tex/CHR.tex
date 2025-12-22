@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-% Core shared preamble
+% Core shared preamble (resolved via TEXINPUTS in build script)
 \input{preamble.tex}
 
 \title{Небесные Хроники: Exoplanet Birth Radius}
@@ -16,11 +16,49 @@
 \section*{Ключевые понятия}
 \input{snippets/birth_radius.tex}
 
+\clearpage
 \section*{Иллюстрации}
+
 \begin{figure}[h]
   \centering
   \includegraphics[width=\linewidth]{../figures/FIG_001_feh_histogram.pdf}
   \caption{Распределение металличности звёзд-хостов ([Fe/H]) в выборке SWEET-Cat × NASA Exoplanet Archive (default\_flag=1).}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_002_feh_vs_distance.pdf}
+  \caption{[Fe/H] как функция расстояния до системы (проверка селекционных эффектов).}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_003_feh_vs_teff.pdf}
+  \caption{[Fe/H] vs $T_{\mathrm{eff}}$ звёзд-хостов.}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_004_feh_vs_logg.pdf}
+  \caption{[Fe/H] vs $\log g$ (эволюционное состояние хостов).}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_005_feh_vs_planet_mass.pdf}
+  \caption{[Fe/H] vs масса планеты (Mj).}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_006_feh_vs_planet_radius.pdf}
+  \caption{[Fe/H] vs радиус планеты ($R_\oplus$).}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/FIG_007_period_vs_mass.pdf}
+  \caption{Масса планеты vs период орбиты (лог-шкала по $P$).}
 \end{figure}
 
 \end{document}

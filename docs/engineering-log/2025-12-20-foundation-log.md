@@ -93,3 +93,40 @@ This milestone confirms that the project infrastructure supports:
 
 TOP_0001 is no longer a demonstration topic but a fully grounded
 research-backed content unit.
+
+---
+
+## 2025-12-22 04:01 — TOP_0001 foundation stabilized
+
+**Context**  
+The first complete end-to-end pass for topic TOP_0001 (Exoplanet Birth Radius) has been completed — from repository structure to fully reproducible PDF generation with figures and scripts.
+
+**What was done**
+- Finalized the core architecture of the `attractor-lab` repository:
+  - clear separation between `core/` (reusable code) and `topics/` (content packages);
+  - single source of truth for Python code, TeX content, and notebooks.
+- Implemented a full data pipeline for TOP_0001:
+  - downloading real datasets (SWEET-Cat + NASA Exoplanet Archive);
+  - normalization and merging at the host-star level;
+  - saving a reproducible processed CSV snapshot.
+- Added a complete set of diagnostic and scientifically relevant figures:
+  - FIG_001–FIG_007 (metallicity distribution, distance bias, stellar parameters, planet properties).
+- Stabilized CHR PDF generation:
+  - TeX snippet export from notebooks;
+  - centralized LaTeX preamble resolved via `TEXINPUTS`;
+  - clean, reproducible build of `CHR.pdf` including all figures.
+- Established Git data policy:
+  - `data/raw/`, `sources/papers/`, and `figures/` are excluded from version control;
+  - only code, TeX sources, notebooks, and processed data are tracked.
+
+**Result**
+- The first topic-pack is fully reproducible from scratch:
+  `fetch data → build figures → export TeX → build PDF`.
+- The repository is ready for public sharing and long-term scaling.
+- TOP_0001 now serves as a reference implementation for future topics.
+
+**Notes**
+- Distance fields (`sy_dist`, `Distance`) are correctly interpreted as
+  *star → Earth* distances, not *planet → star* separations.
+- The next step is the scientific interpretation of FIG_002–FIG_007
+  and their transformation into the final “Celestial Chronicles” script.
