@@ -1,0 +1,59 @@
+% =========================================================
+% Topic-level preamble (RU)
+% Location: topics/<TOP>/tex/preamble_ru.tex
+% =========================================================
+
+% ---------- Encoding / fonts (pdfLaTeX-friendly) ----------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}   % safe with pdfLaTeX; harmless on modern TeX
+\usepackage{lmodern}
+
+% ---------- Language ----------
+\usepackage[russian,english]{babel}
+
+% ---------- Math / symbols ----------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ---------- Graphics ----------
+\usepackage{graphicx}
+
+% ---------- Hyperlinks ----------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% ---------- Page layout ----------
+\usepackage[a4paper,margin=1in]{geometry}
+
+% ---------- Better typography ----------
+\usepackage{microtype}
+
+% ---------- Optional: nicer lists ----------
+\usepackage{enumitem}
+
+% ---------- Optional: captions ----------
+\usepackage{caption}
+
+% ---------- Core (reusable) TeX macros / styles ----------
+% Language-specific stuff stays here; reusable parts may live in core.
+\IfFileExists{../../../core/src/lulab/tex/base.tex}{
+  \input{../../../core/src/lulab/tex/base.tex}
+}{}
+\IfFileExists{../../../core/src/lulab/tex/math_macros.tex}{
+  \input{../../../core/src/lulab/tex/math_macros.tex}
+}{}
+\IfFileExists{../../../core/src/lulab/tex/layout.tex}{
+  \input{../../../core/src/lulab/tex/layout.tex}
+}{}
+\IfFileExists{../../../core/src/lulab/tex/figures.tex}{
+  \input{../../../core/src/lulab/tex/figures.tex}
+}{}
+
+% ---------- Local convenience macros ----------
+\newcommand{\Rsun}{R_\odot}
+\newcommand{\Msun}{M_\odot}

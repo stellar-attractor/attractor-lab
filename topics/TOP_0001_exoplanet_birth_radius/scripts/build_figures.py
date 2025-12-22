@@ -9,9 +9,9 @@ TOPIC_DIR = Path(__file__).resolve().parents[1]
 OUT = TOPIC_DIR / "figures"
 
 
-def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    df = load_topic_dataset(TOPIC_DIR)
+def build_set(df, lang: str):
+    out_lang = OUT / lang
+    out_lang.mkdir(parents=True, exist_ok=True)
 
     plan = [
         ("FIG_001_feh_histogram", plots.plot_feh_histogram),
@@ -24,10 +24,15 @@ def main():
     ]
 
     for name, fn in plan:
-        fig, ax = fn(df)
-        save_figure(fig, OUT / name, formats=("pdf", "png"))
-        print("Saved:", name)
+        fig, ax = fn(df, lang=lang)
+        save_figure(fig, out_lang / name, formats=("pdf", "png"))
+        print(f"Saved [{lang}]: {name}")
 
+
+def main():
+    df = load_topic_dataset(TOPIC_DIR)
+    build_set(df, "ru")
+    build_set(df, "en")
     print("Done. Figures in:", OUT)
 
 
