@@ -230,6 +230,26 @@ __pycache__/
 *.fdb_latexmk
 *.synctex.gz
 
+
+# Generated artifacts
+**/figures/
+**/build/
+
+# ================================
+# Topic-level raw data (downloads)
+# ================================
+topics/**/data/raw/
+
+# ==================================
+# Local copies of scientific papers
+# (links live in sources/links.md)
+# ==================================
+topics/**/sources/papers/
+
+# topic temp + build
+topics/**/_tmp/
+topics/**/build/
+
 # OS
 .DS_Store
 Thumbs.db
