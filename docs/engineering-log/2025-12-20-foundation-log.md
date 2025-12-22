@@ -54,3 +54,42 @@ Validated a full end-to-end pipeline using a synthetic dataset:
 This confirms that the project infrastructure supports reproducible,
 data-driven narrative content, with a clean separation between
 source-of-truth (data + code) and generated artifacts.
+
+---
+
+## Transition to real scientific data (TOP_0001)
+
+The project has successfully transitioned from synthetic test data to a real,
+publicly available scientific dataset, validating the full research-to-media
+pipeline on an actual peer-reviewed study.
+
+### Data sources
+- SWEET-Cat catalog (homogeneous stellar parameters; SWFlag = 1)
+- NASA Exoplanet Archive (planetary systems table, default_flag = 1)
+- Reference paper: Teixeira, Adibekyan, Bossini et al. (2025),
+  “Where in the Milky Way do exoplanets preferentially form?” (arXiv:2501.11660)
+
+### Implemented workflow
+- Automated download of raw catalogs into `data/raw/` (gitignored).
+- Robust merging of SWEET-Cat and NEA datasets using Gaia DR3 source identifiers,
+  with a hostname-based fallback for unmatched cases.
+- Construction of a reproducible processed snapshot
+  (`data/processed/sample_planets_real.csv`, 1522 rows).
+- Clear separation between:
+  - raw data (local, ignored),
+  - processed data (versioned),
+  - generated artifacts (figures, PDFs; ignored).
+
+### Visualization
+- FIG_001 updated to use real host-star metallicity data ([Fe/H]).
+- Figures are generated deterministically from processed data and excluded from git.
+
+### Outcome
+This milestone confirms that the project infrastructure supports:
+- reproducible scientific data processing,
+- transparent provenance of results,
+- seamless integration of real astrophysical data into narrative
+  and media-ready LaTeX deliverables.
+
+TOP_0001 is no longer a demonstration topic but a fully grounded
+research-backed content unit.
