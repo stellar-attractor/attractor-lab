@@ -160,3 +160,16 @@ We reached the point where language becomes part of the content. To avoid mixing
 **Notes / next**
 - Ensure consistent naming conventions for entrypoint files (`CHR_EN.tex` / `CHR_RU.tex`) to avoid case-sensitivity issues on CI/Linux.
 - Next: finalize `birth_radius_*` TeX snippets for both languages and start writing the full CHR script (EN first, then RU adaptation).
+----
+
+2025-12-22 10:35 — Milestone: ipynb-first publishing pipeline (RU/EN) + stable LaTeX templates
+	•	Switched the CHR workflow to an ipynb-as-source-of-truth approach: CHR.ipynb was replaced by CHR_RU.ipynb and CHR_EN.ipynb.
+	•	Introduced non-destructive LaTeX templating: CHR_RU.tpl.tex / CHR_EN.tpl.tex are now the only hand-maintained TeX entrypoints; build scripts no longer overwrite template files.
+	•	Added an explicit intermediate build layer via _tmp/:
+	•	notebook export produces _tmp/CHR_*_body.tex (and related intermediates),
+	•	templates \input{../_tmp/CHR_*_body.tex} to compile PDFs reproducibly.
+	•	Implemented / added core helpers for notebook→markdown→tex export (core/src/lulab/tex/...) and updated topic scripts accordingly.
+	•	Updated .gitignore to keep the repo public-friendly (exclude build artifacts and bulky inputs while keeping reproducibility).
+	•	Cleaned legacy artifacts (CHR_RU.tex, CHR_EN.tex, old CHR.ipynb) to avoid ambiguity and enforce the one-way source flow.
+
+Result: reproducible RU+EN PDF builds from editable notebooks, with templates stable and generation isolated to _tmp/ + build/.
