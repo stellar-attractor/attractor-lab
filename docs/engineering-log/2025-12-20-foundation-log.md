@@ -130,3 +130,33 @@ The first complete end-to-end pass for topic TOP_0001 (Exoplanet Birth Radius) h
   *star → Earth* distances, not *planet → star* separations.
 - The next step is the scientific interpretation of FIG_002–FIG_007
   and their transformation into the final “Celestial Chronicles” script.
+
+---
+
+## 2025-12-22 04:23 — RU/EN split for TeX + bilingual figure pipeline
+
+**Context**  
+We reached the point where language becomes part of the content. To avoid mixing Russian and English versions inside the same artifacts, we introduced a clean RU/EN separation for LaTeX sources and figure generation.
+
+**What was done**
+- Introduced topic-level, language-specific LaTeX preambles:
+  - `topics/TOP_0001_exoplanet_birth_radius/tex/preamble_en.tex`
+  - `topics/TOP_0001_exoplanet_birth_radius/tex/preamble_ru.tex`
+- Deprecated the old core preamble by renaming:
+  - `core/src/lulab/tex/preamble.tex` → `core/src/lulab/tex/preamble_LEGACY.tex`
+- Updated plotting code to support localization:
+  - `core/src/lulab/viz/plots.py` now accepts `lang="en"|"ru"` and renders titles/labels accordingly.
+- Updated figure builder to produce two language variants:
+  - `figures/en/` and `figures/ru/` (both ignored by git as generated artifacts).
+- Updated PDF build script to compile both languages from topic `tex/` entrypoints:
+  - build targets moved from a single `CHR.tex` to separate RU/EN entrypoints.
+
+**Result**
+- The topic can now generate fully consistent bilingual deliverables:
+  - English PDF uses English text, English captions, and `figures/en/`.
+  - Russian PDF uses Russian text, Russian captions, and `figures/ru/`.
+- `core/` remains language-agnostic; language decisions live inside `topics/`.
+
+**Notes / next**
+- Ensure consistent naming conventions for entrypoint files (`CHR_EN.tex` / `CHR_RU.tex`) to avoid case-sensitivity issues on CI/Linux.
+- Next: finalize `birth_radius_*` TeX snippets for both languages and start writing the full CHR script (EN first, then RU adaptation).
