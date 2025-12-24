@@ -173,3 +173,22 @@ We reached the point where language becomes part of the content. To avoid mixing
 	•	Cleaned legacy artifacts (CHR_RU.tex, CHR_EN.tex, old CHR.ipynb) to avoid ambiguity and enforce the one-way source flow.
 
 Result: reproducible RU+EN PDF builds from editable notebooks, with templates stable and generation isolated to _tmp/ + build/.
+
+---
+
+## 2025-12-24 04:23
+
+Stabilized the full documentation pipeline for Topic TOP_0001.
+
+Key results:
+- ipynb declared as the single source of truth for all narrative content
+- automated export: ipynb → sanitized LaTeX body → PDF
+- unified bilingual structure (RU / EN) across all document types:
+  CHR, MIN, ACA, ACAP, AZ, TERM, NOTE, TOP, MISC
+- LaTeX sanitization integrated directly into export_bodies_from_ipynb.py
+  (Unicode symbols, emojis, math edge cases)
+- all document types successfully build to PDF without manual fixes
+
+Outcome:
+The system is now ready for scalable content production across multiple topics
+with minimal maintenance overhead.
