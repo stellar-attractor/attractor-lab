@@ -192,3 +192,69 @@ Key results:
 Outcome:
 The system is now ready for scalable content production across multiple topics
 with minimal maintenance overhead.
+
+---
+## 2025-12-25 13:34
+
+Context
+
+Work on topic TOP_0001_exoplanet_birth_radius focused on consolidating the computational pipeline for stellar age estimation, Galactic Chemical Evolution (GCE) inversion, and reconstruction of stellar birth radii. The main goal was to separate computational logic from narrative notebooks and to ensure full reproducibility of all figures used in articles and scripts.
+
+Key changes and decisions
+
+1. Separation of concerns (code vs narrative)
+	•	All executable cells responsible for data processing and figure generation were moved into ACAP_001_EN.ipynb (Practikum).
+	•	Narrative notebooks (AZ_001_EN.ipynb, AZ_001_RU.ipynb) now only reference precomputed figures via relative paths.
+	•	This prevents accidental recomputation, keeps narrative notebooks lightweight, and improves long-term maintainability.
+
+
+2. Unified figure export mechanism
+	•	Introduced a single helper interface: save_fig("Figure_N")
+	•	All figures are exported in a consistent format and location:
+  topics/TOP_0001_exoplanet_birth_radius/figures/en/Figure_N.png
+
+  	•	Figures are now reusable across notebooks and documents without code duplication.
+
+
+3. Stellar age reconstruction pipeline
+	•	Implemented grid-based stellar age estimation using MIST isochrones.
+	•	Multiple fitting strategies were explored (MCMC, emcee, grid minimization).
+	•	Final choice: deterministic grid-based interpolation, due to:
+	•	robustness,
+	•	speed,
+	•	absence of external sampler dependencies (e.g. pymultinest),
+	•	sufficient accuracy for population-level analysis.
+	•	Results saved as: data/processed/sweetcat_ages_grid.csv
+
+  4. Birth-radius reconstruction
+	•	Implemented two GCE models:
+	•	Toy GCE model (didactic, pipeline validation).
+	•	Realistic GCE model (Minchev+2018-like).
+	•	Reconstruction explicitly treats metallicity as a tracer of the birth environment, not as a causal variable.
+	•	Outputs saved as:
+  data/processed/sweetcat_rbirth_toy.csv
+  data/processed/sweetcat_rbirth_gce.csv
+
+  5. Figures produced and validated
+	•	Figure 1: log g – T_{\rm eff} diagram (SWEET-Cat + HARPS-GTO).
+	•	Figure 2: \[Fe/H\] distributions.
+	•	Figures 5–7: comparison of toy vs realistic GCE, r_{\rm birth} vs age, and r_{\rm birth} vs metallicity.
+	•	All figures are now reproducible from a clean checkout using ACAP only.
+
+Technical notes
+	•	Absolute paths were fully removed; all file access is relative to project root.
+	•	Intermediate CSV products are committed to ensure reproducibility and to avoid long recomputation cycles.
+	•	Some age outliers were clipped (0.1–13.5 Gyr) to avoid non-physical artifacts of the grid method.
+
+
+Known limitations / next steps
+	•	Ages for HARPS-GTO single stars are not yet computed; required for full reproduction of multi-panel figures similar to Figure 9 in the reference paper.
+	•	Planet-mass–dependent analysis (HMPH vs LMPH) is planned but not yet implemented.
+	•	Possible future improvement: document processed data products with a dedicated data/processed/README.md.
+
+Status
+
+Pipeline stable.
+All current figures reproducible.
+Repository state committed and clean.
+
