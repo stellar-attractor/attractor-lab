@@ -258,3 +258,63 @@ Pipeline stable.
 All current figures reproducible.
 Repository state committed and clean.
 
+---
+## 2025-12-26 13:11
+
+Engineering Log — Animation & Reproducibility Phase
+
+Topic: Galactic Birth Radius of Exoplanet Host Stars
+Notebook(s): ACAP_001_EN, ANIM_001_EN, ANIM_001_RU
+Date: 2025-12-26
+
+Scope
+
+This phase focused on transitioning from static, paper-style figures to reproducible, video-ready animations, while simultaneously validating the practical reproducibility of published results on Galactic birth radii of exoplanet host stars.
+
+⸻
+
+Practical exercises (ACAP_001_EN)
+
+In the practical notebook ACAP_001_EN, we reconstructed key elements of the analysis presented in the reference paper:
+	•	Reproduced stellar sample selections using SWEET-Cat and HARPS-GTO datasets.
+	•	Implemented grid-based stellar age estimation (MIST-based interpolation) as a lightweight, transparent alternative to full Bayesian fitting.
+	•	Explored toy and Minchev-like Galactic Chemical Evolution (GCE) prescriptions to reconstruct stellar birth radii.
+	•	Compared reconstructed distributions against published figures and assessed qualitative agreement.
+
+A key outcome was the recognition that exact visual reproduction of published plots is non-trivial, even when using identical data sources and nominally the same methodology. Small, often undocumented choices (binning, filtering, implicit priors, clipping, normalization) materially affect the final appearance, while preserving the underlying physical trends. This observation was explicitly documented in the practical notes as a methodological caveat.
+
+⸻
+
+Animation pipeline
+
+A dedicated animation workflow was developed in separate notebooks (ANIM_001_EN, ANIM_001_RU), deliberately decoupled from the analytical notebooks.
+
+Implemented features include:
+	•	Two histogram animation modes:
+	•	Strict reveal (scientifically neutral, monotonic buildup)
+	•	Equalizer-style reveal (temporally smoothed stochastic jitter converging to the exact final distribution)
+	•	Global export switches:
+	•	mp4 / gif output
+	•	light / dark visual themes
+	•	Consistent axis handling (fixed limits, zero-based Y axes) to avoid misleading visual artifacts during animation.
+	•	Combined log g–T_eff scatter animations with controlled reveal order:
+	•	left-to-right (screen space)
+	•	randomized reveal
+
+All animation outputs are written to dedicated, git-ignored directories to keep the repository clean and reproducible.
+
+⸻
+
+Key results and insights
+	•	The qualitative scientific conclusions of the reference paper (metallicity dependence, inner-disk preference for giant planet hosts, time evolution of formation efficiency) were reproducible.
+	•	Exact visual agreement with published figures was not guaranteed without additional, implicit methodological information.
+	•	For communication and outreach purposes, controlled, well-documented visual storytelling (animations with known behavior) is preferable to attempting pixel-perfect reproduction.
+	•	Separating analysis (ACAP) from presentation (ANIM) significantly improved clarity, maintainability, and creative flexibility.
+
+⸻
+
+Next steps
+	•	Animate formation efficiency vs. birth radius (Figures 8–9 analogs) with error bars and staged reveal.
+	•	Integrate animations into short-form video pipelines (16:9 and 9:16 variants).
+	•	Optionally formalize the practical notebook as a standalone reproducibility case study.
+
