@@ -264,7 +264,7 @@ Repository state committed and clean.
 Engineering Log — Animation & Reproducibility Phase
 
 Topic: Galactic Birth Radius of Exoplanet Host Stars
-Notebook(s): ACAP_001_EN, ANIM_001_EN, ANIM_001_RU
+git Notebook(s): ACAP_001_EN, ANIM_001_EN, ANIM_001_RU
 Date: 2025-12-26
 
 Scope
