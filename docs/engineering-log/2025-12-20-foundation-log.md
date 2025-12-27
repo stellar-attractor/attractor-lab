@@ -318,3 +318,81 @@ Next steps
 	•	Integrate animations into short-form video pipelines (16:9 and 9:16 variants).
 	•	Optionally formalize the practical notebook as a standalone reproducibility case study.
 
+---
+## 2025-12-27 12:44
+
+Вот аккуратная запись для engineering log — в ней зафиксировано что именно сделали, какие решения приняли и почему.
+
+⸻
+
+Engineering Log — 2025-12-27
+
+Topic: Galactic Chemical Evolution — Figure 2 (Age–Metallicity–Radius)
+
+Goal
+
+Reproduce a paper-style, low-cost visualization of Galactic Chemical Evolution using observational data, suitable for outreach and explanatory content (no heavy modeling).
+
+What was implemented
+	1.	APOGEE × Gaia EDR3 cross-match
+	•	Used APOGEE DR17 allStar catalog (III/286).
+	•	Cross-matched with Gaia EDR3 via CDS TAP/ADQL to obtain parallaxes.
+	•	Computed galactocentric cylindrical radius R_{\rm gal} using astropy (Galactocentric frame, R_0=8.2 kpc, Z_0=20.8 pc).
+	•	Built a clean working dataset m with:
+	•	[Fe/H]
+	•	R_gal
+	•	Derived a global metallicity gradient:
+d[\mathrm{Fe/H}]/dR \approx -0.025 \ \mathrm{dex/kpc}
+	2.	MDF by radial bins (panel b)
+	•	Constructed metallicity distribution functions for several radial bins (6–8, 8–10, 10–12 kpc).
+	•	Rotated MDF by 90° so that [Fe/H] is on the Y-axis, matching the reference paper style.
+	•	Ensured consistent [Fe/H] limits across all panels.
+	3.	R vs [Fe/H] relation (panel c)
+	•	Scatter plot of [Fe/H] vs R_gal using APOGEE × Gaia sample.
+	•	Added global linear fit and displayed numerical slope directly on the figure.
+	•	Added a reference vertical line at Sun’s inferred birth radius (~5 kpc) for narrative context.
+	4.	Age vs [Fe/H] (panel a) — lightweight solution
+	•	Abandoned heavy astroNN age pipeline (too slow for interactive work).
+	•	Switched to Boulet et al. (2024) asteroseismically calibrated APOGEE ages.
+	•	Built df_age with:
+	•	Age [Gyr]
+	•	[Fe/H]
+	•	Plotted Age–Metallicity relation with:
+	•	large scatter cloud
+	•	binned median trend line (0.5 Gyr bins)
+	5.	Final multi-panel figure
+	•	Assembled three panels on a single figure:
+	•	(a) Age vs [Fe/H]
+	•	(b) MDF (rotated)
+	•	(c) R vs [Fe/H]
+	•	Unified:
+	•	[Fe/H] axis limits and ticks
+	•	paper-style layout (sharey=True)
+	•	minimal duplicated labels
+	•	Added export utility:
+	•	automatic save to figures/en
+	•	publication-ready DPI and bounding box
+
+Key engineering decisions
+	•	Decoupled age and radius datasets:
+	•	Ages from a calibrated subsample (Boulet+2024).
+	•	Radial trends from the full APOGEE × Gaia sample.
+	•	Scientifically standard and explicitly documented.
+	•	Avoided heavy modeling:
+	•	Focused on “cheap but powerful” observables.
+	•	Suitable for fast iteration and outreach visualization.
+	•	Cached/one-shot philosophy:
+	•	No repeated long downloads.
+	•	Ready for reuse in figures, videos, and scripts.
+
+Result
+
+A clean, paper-style Figure 2 reproducing key GCE trends:
+	•	weak age–metallicity relation,
+	•	radial metallicity gradient,
+	•	shifting MDF with galactocentric radius,
+
+ready for:
+	•	scientific explanation,
+	•	outreach videos,
+	•	further annotation and storytelling.
