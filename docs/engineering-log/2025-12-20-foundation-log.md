@@ -396,3 +396,16 @@ ready for:
 	•	scientific explanation,
 	•	outreach videos,
 	•	further annotation and storytelling.
+
+----
+## 2025-12-29 15:48
+
+### ISM metallicity proxy & Galactic context
+
+- Built large APOGEE DR17 × Gaia DR3 cross-match (~10^5 stars) via VizieR + CDS XMatch
+- Constructed present-day radial metallicity gradient [Fe/H](R)
+- Implemented binned medians, q16–q84 envelopes, and bin counts
+- Identified strong inner-disk incompleteness and justified extrapolation
+- Overlaid metallicity profile on schematic Galactic cross-section
+- Interpreted shallow gradient (≈ −0.05 dex/kpc) as migration-flattened ISM proxy
+- Prepared data export for animation pipeline (ANIM_001_EN.ipynb)
