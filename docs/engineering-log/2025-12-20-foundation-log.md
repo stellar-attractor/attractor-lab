@@ -409,3 +409,18 @@ ready for:
 - Overlaid metallicity profile on schematic Galactic cross-section
 - Interpreted shallow gradient (≈ −0.05 dex/kpc) as migration-flattened ISM proxy
 - Prepared data export for animation pipeline (ANIM_001_EN.ipynb)
+
+## 2025-12-30 14:48
+
+ACAP_001_EN — Engineering log
+
+Implemented a robust APOGEE × Gaia DR3 pipeline to construct an ISM metallicity proxy across the Galactic disk.
+Built face-on Milky Way visualizations illustrating:
+– differential rotation,
+– radial stellar migration,
+– inside-out disk growth,
+– and spiral density waves as a rotating pattern distinct from stellar orbits.
+
+Produced several original animations suitable for outreach and explanatory videos.
+
+All animations are illustrative but grounded in real survey data and physically motivated parametrizations.
