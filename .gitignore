@@ -261,3 +261,12 @@ topics/TOP_0001_exoplanet_birth_radius/animations/
 topics/TOP_0001_exoplanet_birth_radius/data/processed/*.parquet
 topics/TOP_0001_exoplanet_birth_radius/data/processed/mist_grid_cache.parquet
 topics/**/data/processed/*.parquet
+
+# animations
+topics/**/animations/*
+*.mp4
+*.gif
+
+# large processed data
+topics/**/data/processed/*.parquet
+topics/**/data/processed/*_proxy.csv
