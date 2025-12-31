@@ -424,3 +424,106 @@ Built face-on Milky Way visualizations illustrating:
 Produced several original animations suitable for outreach and explanatory videos.
 
 All animations are illustrative but grounded in real survey data and physically motivated parametrizations.
+
+## 2025-12-31 11:45
+
+Summary
+
+This session focused on building a coherent visual and physical narrative that links:
+	•	Galactic-scale stellar migration and spiral density waves
+	•	Disk-scale accretion physics around a black hole
+
+We deliberately separated conceptual regimes (galactic disk vs. accretion disk) and implemented each as a standalone toy model with internally consistent dynamics.
+
+⸻
+
+1. Galactic Disk: Stars & Density Waves
+
+Implemented a face-on Milky Way disk model with:
+	•	Stellar component
+	•	Real-data proxy from APOGEE × Gaia (ISM metallicity tracer)
+	•	Differential rotation (flat rotation curve)
+	•	Radial migration with stochastic inward/outward components
+	•	Age-based evolution (animation starts at ~7–9 Gyr to avoid artificial early rings)
+	•	Spiral density waves
+	•	Treated explicitly as a pattern, not material arms
+	•	Rigid pattern speed distinct from stellar angular velocity
+	•	Logarithmic spiral geometry
+	•	Stars brighten temporarily while crossing arms (arm membership via phase distance)
+
+Result:
+	•	Clear visualization of stars entering and exiting spiral arms
+	•	Correct physical intuition: stars do not co-rotate with arms
+	•	Density waves propagate through matter rather than dragging it
+
+Artifacts such as early dense rings were mitigated by shifting the animation start time rather than forcing initial conditions.
+
+⸻
+
+2. Accretion Disk Around a Black Hole (New Module)
+
+Developed a separate physical object for black hole accretion, not derived from the galactic model.
+
+Architecture
+	•	BlackHole object
+	•	Gravitational radius (visual)
+	•	ISCO as inner disk boundary
+	•	AccretionDisk object
+	•	Thousands of tracer particles
+	•	Softened Keplerian rotation:
+\Omega(R) \propto R^{-3/2}
+	•	Viscous-like inward drift, increasing toward ISCO
+	•	No spiral arms (explicitly removed)
+
+Disk Physics (Illustrative, but consistent)
+	•	Differential shear dominates morphology
+	•	Continuous inward mass transport
+	•	Inner disk brighter and hotter
+	•	Outer disk more diffuse
+	•	Density fluctuations emerge naturally from shear + inflow
+	•	No galactic-scale wave patterns applied
+
+Visual Enhancements
+	•	Dark theme applied globally
+	•	Temperature-weighted brightness
+	•	Doppler-like asymmetry (approaching side brighter)
+	•	Particle birth/death near outer/inner radii
+	•	Final frame hold for visual inspection
+
+Result:
+	•	Clear visual distinction between galactic disks and accretion disks
+	•	Animation now reads correctly as a black hole system, not a galaxy
+
+⸻
+
+3. Key Methodological Decisions
+	•	Spiral arms are density waves, not streams of stars
+	•	Accretion disks require Keplerian shear, not flat rotation
+	•	Early-time artifacts are addressed by time windowing, not parameter hacking
+	•	Visual realism prioritized after conceptual correctness
+
+⸻
+
+4. Outputs
+	•	ANIM_005_stars_cross_spiral_arms — Galactic density-wave interaction
+	•	ANIM_BH_001_accretion_disk_density_wave — Black hole accretion disk toy model
+
+Both animations are suitable for:
+	•	Scientific outreach
+	•	Conceptual explanation
+	•	Further refinement into higher-fidelity simulations
+
+⸻
+
+Next Steps (Deferred)
+	•	Relativistic lensing (GR)
+	•	Inclined disk projection
+	•	Light-travel-time effects
+	•	Quantitative comparison with observed pattern speeds
+
+These are intentionally postponed to keep the current models clean and interpretable.
+
+⸻
+
+Conclusion:
+The project now contains two physically distinct, visually coherent disk simulations that clearly communicate why galaxies and accretion disks look similar — and why they are fundamentally different.
