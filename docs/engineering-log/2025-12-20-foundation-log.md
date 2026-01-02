@@ -527,3 +527,56 @@ These are intentionally postponed to keep the current models clean and interpret
 
 Conclusion:
 The project now contains two physically distinct, visually coherent disk simulations that clearly communicate why galaxies and accretion disks look similar — and why they are fundamentally different.
+
+-----
+# Engineering log — Practicum 1 (draft completion)
+## Date: 2026-01-02 16:21
+
+Data preparation & consistency
+	•	Loaded and cleaned SWEET-Cat stellar parameters with quality filtering (SWFlag = 1).
+	•	Implemented robust handling of column-name variability across intermediate CSVs (age, fit flags, birth radius).
+	•	Introduced explicit physical age cuts for disk stars to suppress isochrone edge effects.
+	•	Ensured consistent merging between stellar ages and metallicities using name-based cross-matching.
+
+Stellar age estimation
+	•	Implemented grid-based isochrone fitting using MIST_Isochrone from the isochrones package.
+	•	Estimated stellar ages via χ² minimization in $(\log T_{\rm eff}, \log g)$ space.
+	•	Applied evolutionary phase (EEP) filtering to suppress unphysical solutions.
+	•	Produced a clean, reusable age catalogue for downstream analysis.
+
+Galactic chemical evolution (GCE) models
+	•	Implemented a toy GCE model with time-dependent ISM enrichment and metallicity gradient.
+	•	Implemented a realistic Minchev-like GCE model with:
+	•	logarithmic ISM enrichment at the solar radius,
+	•	time-dependent radial metallicity gradient.
+	•	Inverted the GCE relations to reconstruct stellar birth radii from age and metallicity.
+	•	Clipped reconstructed radii to physically plausible disk ranges.
+
+Analysis & visualization
+	•	Constructed publication-style figures for:
+	•	metallicity distributions,
+	•	stellar age distributions,
+	•	age–metallicity relation,
+	•	birth radius distributions (toy vs realistic GCE),
+	•	birth radius vs age,
+	•	birth radius vs metallicity.
+	•	Implemented KDE-based mode estimation for birth-radius distributions.
+	•	Standardized binning and axis ranges for direct comparison between models.
+	•	Identified and mitigated edge-driven artifacts (“walls”) in age and radius distributions.
+
+Scientific validation
+	•	Verified that reconstructed birth radii correlate with metallicity in the physically expected sense.
+	•	Confirmed broad birth-radius distributions at fixed age, consistent with radial migration.
+	•	Demonstrated that age alone does not uniquely determine stellar birth environment.
+	•	Established internal consistency between age, metallicity, and reconstructed $r_{\text{birth}}$.
+
+Documentation
+	•	Added detailed markdown explanations (EN/RU) for all major analysis cells.
+	•	Explicitly distinguished physical causality vs methodological reconstruction.
+	•	Prepared Practicum 1 for further refactoring and extension.
+
+Known technical debt / next steps
+	•	Refactor shared paths, plotting helpers, and constants into lulab.
+	•	Introduce unified RU/EN plotting support (labels, titles, output paths).
+	•	Perform full pipeline review to track sample-size losses across steps.
+	•	Harmonize column naming across all intermediate CSV products.
