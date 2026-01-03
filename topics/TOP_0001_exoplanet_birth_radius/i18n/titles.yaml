@@ -1,0 +1,29 @@
+en:
+  ACAP_001:
+    figure_1: "HR diagram (Teff vs log g) for SWEET-Cat and HARPS-GTO samples"
+    figure_2: "Metallicity distributions of SWEET-Cat and HARPS-GTO stars"
+    figure_3: "Age distribution of SWEET-Cat host stars (MIST isochrones)"
+    figure_4: "Age–metallicity relation for SWEET-Cat host stars"
+    figure_5: "Reconstructed stellar birth radii (toy GCE model)"
+    figure_6: "Stellar birth radius versus age (realistic GCE model)"
+    figure_7: "Birth radius distribution: toy vs realistic GCE"
+    figure_8: "Stellar birth radius as a function of age (realistic GCE)"
+    figure_1_left: "SWEET-Cat host stars"
+    figure_1_right: "HARPS-GTO"
+    figure_2_left: "SWEET-Cat host stars"
+    figure_2_right: "HARPS-GTO"
+
+ru:
+  ACAP_001:
+    figure_1: "Диаграмма Киля (Teff–log g) для выборок SWEET-Cat и HARPS-GTO"
+    figure_2: "Распределения металличности звёзд SWEET-Cat и HARPS-GTO"
+    figure_3: "Распределение возрастов звёзд-хостов SWEET-Cat (изохроны MIST)"
+    figure_4: "Связь возраст–металличность для звёзд-хостов SWEET-Cat"
+    figure_5: "Восстановленные радиусы рождения звёзд (упрощённая GCE-модель)"
+    figure_6: "Радиус рождения звёзд в зависимости от возраста (реалистичная GCE)"
+    figure_7: "Распределение радиусов рождения: toy vs реалистичная GCE"
+    figure_8: "Радиус рождения звезды как функция возраста (реалистичный GCE)"
+    figure_1_left: "SWEET-Cat: звёзды с планетами"
+    figure_1_right: "HARPS-GTO"
+    figure_2_left: "SWEET-Cat: звёзды с планетами"
+    figure_2_right: "HARPS-GTO"

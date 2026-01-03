@@ -26,6 +26,9 @@ from typing import Optional, Literal, Dict
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.animation import FFMpegWriter, PillowWriter
+# from lulab.io.theme import THEME, apply_theme, get_colors
+
+# COLORS = get_colors(THEME)
 
 # =================================================
 # Animation export settings (defaults)

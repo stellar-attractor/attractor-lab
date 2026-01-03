@@ -580,3 +580,63 @@ Known technical debt / next steps
 	•	Introduce unified RU/EN plotting support (labels, titles, output paths).
 	•	Perform full pipeline review to track sample-size losses across steps.
 	•	Harmonize column naming across all intermediate CSV products.
+
+
+## 2026-01-03 15:21
+## Engineering log — ACAP_001: i18n & theming refactor
+
+Summary
+
+Refactored plotting and notebook bootstrap to support clean multilingual (EN/RU) switching and explicit theme control without code duplication or hidden side effects.
+
+All figures in ACAP_001 can now be regenerated in different languages and themes using the same notebook code.
+
+⸻
+
+What was done
+
+🌍 Internationalization (i18n)
+	•	Introduced topic-level YAML-based i18n for:
+	•	axis labels
+	•	titles
+	•	legends
+	•	Unified YAML structure for scalability:
+	•	common — shared labels across notebooks
+	•	<NOTEBOOK_ID> — notebook-specific labels/titles
+	•	Updated plot_text.py:
+	•	explicit set_lang()
+	•	set_notebook()
+	•	robust fallback logic
+	•	convenience aliases L() / T()
+	•	All plotting cells now reference only keys, never hardcoded strings.
+
+🎨 Theme handling
+	•	Clarified separation between:
+	•	theme state (THEME)
+	•	theme application (apply_theme, set_theme)
+	•	Switched notebooks to explicit theme application in bootstrap.
+	•	Ensured theme switching does not depend on language or import order.
+	•	Verified that figures render correctly in both light and dark themes.
+
+📊 Figures & notebooks
+	•	Refactored all plotting cells (Figures 1–8):
+	•	removed hardcoded text
+	•	unified labels, titles, legends via i18n
+	•	kept dataset column names intact
+	•	Ensured consistent behavior between EN and RU notebooks.
+	•	Verified figure export paths respect language (figures/en, figures/ru).
+
+⸻
+
+Result
+	•	One notebook → multiple languages → multiple themes
+	•	No duplicated code
+	•	No matplotlib state leakage between runs
+	•	Safe foundation for adding new notebooks and languages
+
+⸻
+
+Notes
+	•	THEME is now treated as state, not configuration.
+	•	Theme must be applied explicitly (set_theme() / apply_theme()).
+	•	This is intentional to avoid hidden matplotlib side effects.

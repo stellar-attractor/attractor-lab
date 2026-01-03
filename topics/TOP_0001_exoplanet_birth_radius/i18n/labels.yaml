@@ -1,0 +1,31 @@
+en:
+  common:
+    age_gyr: "Age (Gyr)"
+    feh: "[Fe/H] (dex)"
+    teff: "$T_{\\rm eff}$ (K)"
+    logg: "$\\log\\, g\\,({\\rm dex})$"
+    r_birth: "$r_{\\rm birth}$ (kpc)"
+    count: "Count"
+    density: "Normalized density"
+
+  ACAP_001:
+    legend_single_stars: "single stars"
+    legend_host_stars: "host stars"
+    legend_toy: "toy GCE"
+    legend_minchev: "similar to Minchev et al. (2022)"
+
+ru:
+  common:
+    age_gyr: "Возраст (млрд лет)"
+    feh: "[Fe/H] (dex)"
+    teff: "$T_{\\rm eff}$ (K)"
+    logg: "$\\log\\, g\\,({\\rm dex})$"
+    r_birth: "$r_{\\rm рождения}$ (кпк)"
+    count: "Количество"
+    density: "Нормированная плотность"
+
+  ACAP_001:
+    legend_single_stars: "одиночные звёзды"
+    legend_host_stars: "звёзды с планетами"
+    legend_toy: "Упрощённая модель"
+    legend_minchev: "Модель подобная Minchev et al. (2022)"
