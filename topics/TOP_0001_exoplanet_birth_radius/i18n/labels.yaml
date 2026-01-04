@@ -7,6 +7,14 @@ en:
     r_birth: "$r_{\\rm birth}$ (kpc)"
     count: "Count"
     density: "Normalized density"
+    dist_kpc: "Distance (kpc)"
+    R_gal: "Galactocentric radius R (kpc)"
+    legend_global_gradient: "global:"
+    legend_solar_birth: "Sun birth ~5 kpc"
+    median_binned: "Binned median"
+    q16_q84: "q16–q84"
+    n_per_bin: "N per bin"
+    stars_per_bin: "Stars per bin (N)"
 
   ACAP_001:
     legend_single_stars: "single stars"
@@ -23,6 +31,14 @@ ru:
     r_birth: "$r_{\\rm рождения}$ (кпк)"
     count: "Количество"
     density: "Нормированная плотность"
+    dist_kpc: "Расстояние (кпк)"
+    R_gal: "Галактоцентрический радиус R (кпк)"
+    legend_global_gradient: "градиент:"
+    legend_solar_birth: "Солнце: рождение ~5 кпк"
+    median_binned: "Медиана по бинам"
+    q16_q84: "q16–q84"
+    n_per_bin: "N в бине"
+    stars_per_bin: "Число звёзд в бине (N)"
 
   ACAP_001:
     legend_single_stars: "одиночные звёзды"

@@ -13,6 +13,12 @@ en:
     figure_2_left: "SWEET-Cat host stars"
     figure_2_right: "HARPS-GTO"
 
+  ACAP_002:
+    apogee_panel_left: "(a) Age vs [Fe/H]"
+    apogee_panel_mid: "(b) MDF by R bins"
+    apogee_panel_right: "(c) R vs [Fe/H]"
+    apogee_rfeh_binned: "APOGEE×Gaia: [Fe/H] vs R with binned stats + bin counts"
+
 ru:
   ACAP_001:
     figure_1: "Диаграмма Киля (Teff–log g) для выборок SWEET-Cat и HARPS-GTO"
@@ -27,3 +33,9 @@ ru:
     figure_1_right: "HARPS-GTO"
     figure_2_left: "SWEET-Cat: звёзды с планетами"
     figure_2_right: "HARPS-GTO"
+
+  ACAP_002:
+    apogee_panel_left: "(a) Возраст vs [Fe/H]"
+    apogee_panel_mid: "(b) MDF по радиальным бинам"
+    apogee_panel_right: "(c) R vs [Fe/H]"
+    apogee_rfeh_binned: "APOGEE×Gaia: [Fe/H] vs R с медианой по бинам и числом звёзд"
