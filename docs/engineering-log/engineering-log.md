@@ -749,9 +749,122 @@ This session finalized **ACAP_002_EN.ipynb** and prepared it for a clean Russian
   - Galactic chemical evolution modeling,
   - later animation and visualization notebooks.
 
----
-
 ### Next steps
 - Create **ACAP_002_RU.ipynb** as a language-only duplicate.
 - Add BibTeX-based reference handling (later).
 - Extend pipeline toward birth-radius reconstruction (next practicum).
+
+---
+
+## Engineering Log — ACAP_003 (Practicum 3) Completion + i18n + RU Copy
+
+**Date:** 2026-01-05  
+**Topic:** TOP_0001_exoplanet_birth_radius  
+**Notebook:** ACAP_003  
+**Status:** completed (EN finalized, RU notebook prepared cell-by-cell, i18n enabled)
+
+
+### Goal of this iteration
+
+Bring ACAP_003 to a publication-ready, reproducible state, consistent with the standards established in ACAP_002:
+
+- stabilize the data pipeline and intermediate products
+- complete Motivation, Conclusions, and detailed per-cell explanations
+- migrate final figures to the unified i18n architecture (labels & titles via YAML)
+- prepare the Russian counterpart notebook ACAP_003_RU.ipynb
+
+
+## What was done
+
+### 1. Data pipeline (kept stable by design)
+
+The original step-by-step structure was preserved intentionally — it is logically ordered and readable directly from cell names.
+
+The pipeline relies on explicit sources and produces persistent intermediate CSV files:
+
+- SWEET-Cat: loading, quality filtering (SWFlag == 1), column normalization
+- HARPS-GTO (VizieR J/A+A/545/A32): catalog loading, basic quality cuts, [Fe/H] → feh
+- NEA: planet catalog parsing, canonical host-name normalization, HMPH / LMPH classification, aggregation at the host level
+- MIST grid cache: mist_grid_cache.parquet (built once, reused)
+- Stellar ages: fast grid-matching in (Teff, logg, feh) for SWEET and HARPS  
+  → sweetcat_ages_grid.csv, harps_ages_grid.csv
+- Birth radii: toy GCE inversion  
+  → sweetcat_rbirth_gce.csv, harps_rbirth_gce.csv
+- Final figures: built exclusively from processed CSVs (fast, reproducible)
+
+
+### 2. Notebook narrative
+
+Added and refined:
+
+- Motivation, Scientific idea, Structure, Data pipeline
+- Detailed explanations for key cells (Cell 1–12)
+- Interpretation blocks for Figure 1 and Figure 2
+- Updated discussion on why pixel-perfect reproduction is difficult
+- Final Conclusions (English and Russian)
+
+
+### 3. i18n integration for figures
+
+Final plotting cells were migrated to the unified i18n system:
+
+- labels.yaml for axis labels, legends, annotations
+- titles.yaml for figure and panel titles
+
+Legacy save helpers were removed.  
+We reverted to the proven pattern from ACAP_002 to avoid API mismatches:
+
+- a notebook-scoped save helper
+- automatic ACAP_003 prefix in figure filenames
+- language-aware output directories
+
+
+### 4. Final figures
+
+- Figure 1  
+  Multi-panel comparison (SWEET-Cat vs HARPS-GTO):  
+  age and birth radius, counts plus relative frequencies, paper-like binning, i18n labels and titles
+
+- Figure 2  
+  HARPS-GTO only: birth-radius distributions split by age bins, Wilson confidence intervals, i18n-aware rendering
+
+Both figures are generated only from processed CSV files.
+
+### 5. Russian notebook
+
+A cell-by-cell transfer strategy was used to preserve structure and reproducibility.
+
+All translated text is provided in Markdown with original formatting retained.
+
+
+## What was intentionally postponed
+
+- Bibliography and BibTeX integration  
+  (to be addressed at the PDF-rendering stage)
+- Large-scale refactoring of the pipeline — only minimal, targeted improvements were made
+
+## Artifacts produced
+
+- data/processed/mist_grid_cache.parquet
+- data/processed/sweetcat_ages_grid.csv
+- data/processed/harps_ages_grid.csv
+- data/processed/sweetcat_rbirth_gce.csv
+- data/processed/harps_rbirth_gce.csv
+- figures/en/ACAP_003_Figure_1.png
+- figures/en/ACAP_003_Figure_2.png
+- updated i18n labels.yaml (ACAP_003 entries)
+- updated i18n titles.yaml (Figure 1 and Figure 2 for ACAP_003)
+- ACAP_003_EN.ipynb (final)
+- ACAP_003_RU.ipynb (structure fixed, text in progress)
+
+## Reproducibility check
+
+- All final figures are generated from local CSV files
+- External services (VizieR, NEA) are used only upstream and their outputs are cached
+- The notebook can be rerun end-to-end without network access once caches exist
+
+## Next steps
+
+- Commit ACAP_003 (EN notebook, figures, i18n updates)
+- Finish ACAP_003_RU.ipynb (final verification)
+- Move on to ANIM_001–002 (animation pipeline)

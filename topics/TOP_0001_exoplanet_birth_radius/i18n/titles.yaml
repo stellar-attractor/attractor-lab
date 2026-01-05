@@ -19,6 +19,22 @@ en:
     apogee_panel_right: "(c) R vs [Fe/H]"
     apogee_rfeh_binned: "APOGEE×Gaia: [Fe/H] vs R with binned stats + bin counts"
 
+  ACAP_003:
+    figure_1: "Planet-hosting stars as a function of age and birth radius"
+    figure_1_sweet: "SWEET-Cat sample"
+    figure_1_harps: "HARPS-GTO sample"
+
+    panel_age_counts: "Number of stars vs age"
+    panel_age_frequency: "Planet-host fraction vs age"
+
+    panel_rbirth_counts: "Number of stars vs birth radius"
+    panel_rbirth_frequency: "Planet-host fraction vs birth radius"
+
+    figure_2: "Planet-host frequency versus stellar birth radius (HARPS-GTO)"
+    age_bin_old:  "Age > 8 Gyr"
+    age_bin_mid:  "4 Gyr < Age < 8 Gyr"
+    age_bin_young: "Age < 4 Gyr"
+
 ru:
   ACAP_001:
     figure_1: "Диаграмма Киля (Teff–log g) для выборок SWEET-Cat и HARPS-GTO"
@@ -39,3 +55,19 @@ ru:
     apogee_panel_mid: "(b) MDF по радиальным бинам"
     apogee_panel_right: "(c) R vs [Fe/H]"
     apogee_rfeh_binned: "APOGEE×Gaia: [Fe/H] vs R с медианой по бинам и числом звёзд"
+
+  ACAP_003:
+    figure_1: "Звёзды с планетами как функция возраста и радиуса рождения"
+    figure_1_sweet: "Выборка SWEET-Cat"
+    figure_1_harps: "Выборка HARPS-GTO"
+
+    panel_age_counts: "Число звёзд в зависимости от возраста"
+    panel_age_frequency: "Доля звёзд с планетами vs возраст"
+
+    panel_rbirth_counts: "Число звёзд в зависимости от радиуса рождения"
+    panel_rbirth_frequency: "Доля звёзд с планетами vs радиус рождения"
+
+    figure_2: "Доля звёзд с планетами в зависимости от радиуса рождения (HARPS-GTO)"
+    age_bin_old:  "Возраст > 8 млрд лет"
+    age_bin_mid:  "4 < Возраст < 8 млрд лет"
+    age_bin_young: "Возраст < 4 млрд лет"

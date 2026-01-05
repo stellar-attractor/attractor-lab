@@ -9,11 +9,10 @@ en:
     density: "Normalized density"
     dist_kpc: "Distance (kpc)"
     R_gal: "Galactocentric radius R (kpc)"
-    legend_global_gradient: "global:"
-    legend_solar_birth: "Sun birth ~5 kpc"
-    median_binned: "Binned median"
-    q16_q84: "q16–q84"
-    n_per_bin: "N per bin"
+
+    # --- reused in ACAP_003 plots ---
+    n_stars: "N stars"
+    rel_freq: "Relative frequency, $F_p$"
     stars_per_bin: "Stars per bin (N)"
 
   ACAP_001:
@@ -21,6 +20,17 @@ en:
     legend_host_stars: "host stars"
     legend_toy: "toy GCE"
     legend_minchev: "similar to Minchev et al. (2022)"
+
+  ACAP_003:
+    title_sweet: "SWEET-Cat"
+    title_harps: "HARPS-GTO"
+
+    legend_single: "Single stars"
+    legend_hmph: "HMPHs"
+    legend_lmph: "LMPHs"
+
+    legend_hmph_frac: "HMPHs / Total stars"
+    legend_lmph_frac: "LMPHs / Total stars"
 
 ru:
   common:
@@ -33,11 +43,10 @@ ru:
     density: "Нормированная плотность"
     dist_kpc: "Расстояние (кпк)"
     R_gal: "Галактоцентрический радиус R (кпк)"
-    legend_global_gradient: "градиент:"
-    legend_solar_birth: "Солнце: рождение ~5 кпк"
-    median_binned: "Медиана по бинам"
-    q16_q84: "q16–q84"
-    n_per_bin: "N в бине"
+
+    # --- reused in ACAP_003 plots ---
+    n_stars: "Число звёзд, N"
+    rel_freq: "Относительная частота, $F_p$"
     stars_per_bin: "Число звёзд в бине (N)"
 
   ACAP_001:
@@ -45,3 +54,14 @@ ru:
     legend_host_stars: "звёзды с планетами"
     legend_toy: "Упрощённая модель"
     legend_minchev: "Модель подобная Minchev et al. (2022)"
+
+  ACAP_003:
+    title_sweet: "SWEET-Cat"
+    title_harps: "HARPS-GTO"
+
+    legend_single: "Одиночные звёзды"
+    legend_hmph: "HMPH"
+    legend_lmph: "LMPH"
+
+    legend_hmph_frac: "HMPH / все звёзды"
+    legend_lmph_frac: "LMPH / все звёзды"
