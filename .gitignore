@@ -270,3 +270,4 @@ topics/**/animations/*
 # large processed data
 topics/**/data/processed/*.parquet
 topics/**/data/processed/*_proxy.csv
+topics/**/data/processed/*_xmatch_raw.csv
