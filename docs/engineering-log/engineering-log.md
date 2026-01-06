@@ -868,3 +868,146 @@ All translated text is provided in Markdown with original formatting retained.
 - Commit ACAP_003 (EN notebook, figures, i18n updates)
 - Finish ACAP_003_RU.ipynb (final verification)
 - Move on to ANIM_001–002 (animation pipeline)
+---
+
+## 2026-01-06 16:28
+### Engineering log — ANIM_002
+
+This section documents the technical and architectural decisions made while refactoring and completing the **ANIM_002** notebook. The goal of this log is to preserve *why* certain choices were made, not just *what* the final code looks like.
+
+
+### 1. Data sources and reproducibility
+
+**Decision:**  
+All animations in ANIM_002 use **processed CSV files only**.
+
+**Rationale:**
+- Eliminates runtime dependencies on external services (Vizier, TAP, NEA).
+- Guarantees reproducibility across machines and time.
+- Allows deterministic debugging of animation logic.
+
+**Key datasets used:**
+- `boulet_apogee_ages.csv` — age–metallicity sample.
+- `apogee_ready.csv` — APOGEE × Gaia sample with RA/Dec/parallax.
+- `apogee_gaia_ism_proxy.csv` — lightweight proxy (R_gal, Z_gal, [Fe/H]).
+- SWEET-Cat / HARPS processed grids reused where applicable.
+
+Any cell attempting to re-query catalogs was removed or rewritten to consume these files.
+
+
+### 2. Bootstrap architecture
+
+**Decision:**  
+A single **bootstrap cell** initializes:
+- paths (`TOPIC_ROOT`, `PROC`, `ANIM_DIR`),
+- animation parameters (`FPS`, `DPI`, format),
+- theme handling,
+- i18n loading.
+
+**Rationale:**
+- Prevents silent divergence between notebooks (ANIM_001, ANIM_002, …).
+- Ensures that helper functions (`save_animation`, `_i18n_get`) are always available.
+- Makes notebooks portable and order-independent.
+
+**Lesson learned:**  
+Helpers must live either in the bootstrap or in imported modules — *never* be redefined ad hoc inside cells.
+
+
+### 3. i18n integration
+
+**Decision:**  
+All user-facing text is retrieved via `_i18n_get()` from YAML files.
+
+**Rationale:**
+- Avoids hard-coded strings in animation logic.
+- Enables bilingual output without code duplication.
+- Keeps scientific terminology consistent across figures and notebooks.
+
+**Key conventions:**
+- Axis labels → `common.*`
+- Notebook-specific titles → `ANIM_002.*`
+- Legends reused from `ACAP_*` where possible.
+
+Fallbacks are always provided to prevent runtime failures.
+
+
+### 4. Animation timing model
+
+**Decision:**  
+Standardized animation timing:
+- **3 s reveal + 3 s hold** for point-based animations.
+- Fixed `FPS` from bootstrap.
+
+**Rationale:**
+- Prevents animations from feeling rushed.
+- Ensures the final frame is readable when embedded in presentations or papers.
+- Makes different animations visually comparable.
+
+
+### 5. Scatter reveal strategies
+
+Two complementary reveal modes were implemented:
+
+1. **Ordered reveal (by age or radius)**  
+   - Encodes physical causality (e.g., temporal evolution).
+   - Used when the ordering itself is meaningful.
+
+2. **Random reveal**  
+   - Acts as a sanity check.
+   - Confirms that perceived structure is not an artifact of reveal order.
+
+This dual approach was kept intentionally, even when visually redundant.
+
+
+### 6. Inside-out growth (R–[Fe/H])
+
+**Key refactor:**
+- Removed preliminary “sanity” scatter plots.
+- Jumped directly to the physically informative animation:
+  - progressive `R_max`,
+  - binned median,
+  - q16–q84 envelope,
+  - global metallicity gradient.
+
+**Rationale:**
+- Reduces notebook length.
+- Focuses attention on the scientifically relevant signal.
+- Matches the narrative of inside-out Galactic disk growth.
+
+
+### 7. Edge-on Galactic profile (R–Z)
+
+**Issue encountered:**
+- Flat Z distribution in early attempts.
+
+**Root cause:**
+- Accidental use of proxy datasets with `Z_gal = 0`.
+
+**Resolution:**
+- Explicitly switched to `apogee_ready.csv` with RA/Dec/parallax.
+- Recomputed Galactocentric coordinates using `astropy`.
+
+**Outcome:**
+- Correct “fan-like” disk structure.
+- Clear interpretation as an **edge-on view of the Milky Way disk**.
+
+
+### 8. What was deliberately removed
+
+- Repeated exploratory plots already shown in earlier notebooks.
+- On-the-fly coordinate recomputation when processed values exist.
+- Mixed responsibilities (e.g., saving CSV + plotting in the same cell).
+
+These elements were either redundant or better suited for **ANIM_003**.
+
+
+### 9. Final state
+
+At the end of this refactor, **ANIM_002** is:
+- reproducible,
+- modular,
+- i18n-complete,
+- scientifically focused,
+- and ready for reuse in publications or outreach material.
+
+Speculative or exploratory visualizations have been explicitly deferred to **ANIM_003**.

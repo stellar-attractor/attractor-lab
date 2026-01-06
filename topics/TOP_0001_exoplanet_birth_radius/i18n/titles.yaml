@@ -31,9 +31,34 @@ en:
     panel_rbirth_frequency: "Planet-host fraction vs birth radius"
 
     figure_2: "Planet-host frequency versus stellar birth radius (HARPS-GTO)"
-    age_bin_old:  "Age > 8 Gyr"
-    age_bin_mid:  "4 Gyr < Age < 8 Gyr"
+    age_bin_old: "Age > 8 Gyr"
+    age_bin_mid: "4 Gyr < Age < 8 Gyr"
     age_bin_young: "Age < 4 Gyr"
+
+  # =========================
+  # Animations: ANIM_001
+  # =========================
+  ANIM_001:
+    figure_1: "HR diagram (Teff vs log g): animated reveal"
+    figure_1_lr: "Left-to-right reveal"
+    figure_1_random: "Random reveal"
+
+  # =========================
+  # Animations: ANIM_002
+  # =========================
+  ANIM_002:
+    # Age–[Fe/H]
+    figure_1: "Age vs [Fe/H]: animated reveal"
+    figure_1_sorted: "Sorted by age (threshold reveal)"
+    figure_1_random: "Random reveal"
+
+    # Inside-out growth (R–[Fe/H]) with binned stats
+    figure_2: "Inside-out growth (R vs [Fe/H]): median + q16–q84 band"
+    figure_2_caption: "Binned median and q16–q84 envelope revealed as R_max increases"
+
+    # Profile view (R–Z) colored by [Fe/H]
+    figure_3: "Inside-out growth (edge-on): R–Z profile colored by [Fe/H]"
+
 
 ru:
   ACAP_001:
@@ -68,6 +93,30 @@ ru:
     panel_rbirth_frequency: "Доля звёзд с планетами vs радиус рождения"
 
     figure_2: "Доля звёзд с планетами в зависимости от радиуса рождения (HARPS-GTO)"
-    age_bin_old:  "Возраст > 8 млрд лет"
-    age_bin_mid:  "4 < Возраст < 8 млрд лет"
+    age_bin_old: "Возраст > 8 млрд лет"
+    age_bin_mid: "4 < Возраст < 8 млрд лет"
     age_bin_young: "Возраст < 4 млрд лет"
+
+  # =========================
+  # Animations: ANIM_001
+  # =========================
+  ANIM_001:
+    figure_1: "Диаграмма Киля (Teff vs log g): анимированное проявление"
+    figure_1_lr: "Проявление слева направо"
+    figure_1_random: "Случайное проявление"
+
+  # =========================
+  # Animations: ANIM_002
+  # =========================
+  ANIM_002:
+    # Age–[Fe/H]
+    figure_1: "Возраст vs [Fe/H]: анимированное проявление"
+    figure_1_sorted: "Проявление по порогу возраста"
+    figure_1_random: "Случайное проявление"
+
+    # Inside-out growth (R–[Fe/H]) with binned stats
+    figure_2: "Рост диска изнутри наружу (R vs [Fe/H]): медиана + q16–q84"
+    figure_2_caption: "Медиана по бинам и коридор q16–q84 проявляются по мере роста R_max"
+
+    # Profile view (R–Z) colored by [Fe/H]
+    figure_3: "Рост диска (вид с ребра): профиль R–Z, цвет = [Fe/H]"

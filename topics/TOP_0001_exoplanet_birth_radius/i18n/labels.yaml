@@ -9,6 +9,7 @@ en:
     density: "Normalized density"
     dist_kpc: "Distance (kpc)"
     R_gal: "Galactocentric radius R (kpc)"
+    Z_gal: "Z (kpc)"
 
     # --- reused in ACAP_003 plots ---
     n_stars: "N stars"
@@ -32,6 +33,44 @@ en:
     legend_hmph_frac: "HMPHs / Total stars"
     legend_lmph_frac: "LMPHs / Total stars"
 
+  # =========================
+  # Animations: ANIM_001
+  # =========================
+  ANIM_001:
+    legend_sweet: "SWEET-Cat"
+    legend_harps_single: "HARPS single"
+    legend_harps_host: "HARPS host"
+
+    hrd_title: "HR diagram (Teff vs log g) — reveal"
+
+  # =========================
+  # Animations: ANIM_002
+  # =========================
+  ANIM_002:
+    # --- Age–[Fe/H] reveals ---
+    anim_age_feh_reveal: "Age vs [Fe/H] — reveal"
+    anim_age_feh_reveal_random: "Age vs [Fe/H] — random reveal"
+
+    corner_age_leq_n: "Age ≤ {thr:.2f} Gyr   |   N = {n:,}"
+
+    # --- Inside-out growth: R–[Fe/H] ---
+    anim_insideout_median_title: "Inside-out growth of the Galactic disk (APOGEE × Gaia)"
+    anim_insideout_median_subtitle: "Point cloud + binned median and q16–q84 band revealed over time"
+
+    legend_global_fit: "global fit"
+    legend_binned_median: "binned median"
+    legend_q16_q84: "q16–q84"
+
+    corner_rmax_n: "R_max = {rmax:.1f} kpc   N = {n:,}"
+    corner_fit_grad: "global fit: d[Fe/H]/dR ≈ {mfit:+.3f} dex/kpc"
+    corner_bin_min_n: "(bin min N={min_n})"
+
+    # --- Profile view (R–Z), edge-on ---
+    anim_profile_rz_insideout_title: "Inside-out growth of the Galactic disk (edge-on view)"
+    anim_profile_rz_subtitle: "APOGEE×Gaia sample, color = [Fe/H]"
+    cbar_feh: "[Fe/H] (dex)"
+
+
 ru:
   common:
     age_gyr: "Возраст (млрд лет)"
@@ -43,6 +82,7 @@ ru:
     density: "Нормированная плотность"
     dist_kpc: "Расстояние (кпк)"
     R_gal: "Галактоцентрический радиус R (кпк)"
+    Z_gal: "Z (кпк)"
 
     # --- reused in ACAP_003 plots ---
     n_stars: "Число звёзд, N"
@@ -65,3 +105,40 @@ ru:
 
     legend_hmph_frac: "HMPH / все звёзды"
     legend_lmph_frac: "LMPH / все звёзды"
+
+  # =========================
+  # Animations: ANIM_001
+  # =========================
+  ANIM_001:
+    legend_sweet: "SWEET-Cat"
+    legend_harps_single: "HARPS: одиночные"
+    legend_harps_host: "HARPS: хосты"
+
+    hrd_title: "Диаграмма Киля (Teff vs log g) — проявление"
+
+  # =========================
+  # Animations: ANIM_002
+  # =========================
+  ANIM_002:
+    # --- Age–[Fe/H] reveals ---
+    anim_age_feh_reveal: "Возраст vs [Fe/H] — проявление"
+    anim_age_feh_reveal_random: "Возраст vs [Fe/H] — случайное проявление"
+
+    corner_age_leq_n: "Возраст ≤ {thr:.2f} млрд лет   |   N = {n:,}"
+
+    # --- Inside-out growth: R–[Fe/H] ---
+    anim_insideout_median_title: "Рост диска Галактики изнутри наружу (APOGEE × Gaia)"
+    anim_insideout_median_subtitle: "Облако точек + медиана по бинам и полоса q16–q84 проявляются со временем"
+
+    legend_global_fit: "общий фит"
+    legend_binned_median: "медиана по бинам"
+    legend_q16_q84: "q16–q84"
+
+    corner_rmax_n: "R_max = {rmax:.1f} кпк   N = {n:,}"
+    corner_fit_grad: "общий фит: d[Fe/H]/dR ≈ {mfit:+.3f} dex/кпк"
+    corner_bin_min_n: "(мин. N в бине = {min_n})"
+
+    # --- Profile view (R–Z), edge-on ---
+    anim_profile_rz_insideout_title: "Рост диска Галактики изнутри наружу (вид с ребра)"
+    anim_profile_rz_subtitle: "Выборка APOGEE×Gaia, цвет = [Fe/H]"
+    cbar_feh: "[Fe/H] (dex)"
