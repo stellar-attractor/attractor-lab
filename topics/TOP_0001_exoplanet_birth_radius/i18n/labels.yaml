@@ -16,11 +16,16 @@ en:
     rel_freq: "Relative frequency, $F_p$"
     stars_per_bin: "Stars per bin (N)"
 
-  ACAP_001:
+    # -- ACAP_001 labels --
     legend_single_stars: "single stars"
     legend_host_stars: "host stars"
     legend_toy: "toy GCE"
     legend_minchev: "similar to Minchev et al. (2022)"
+
+   # -- ANIM_003 labels --
+    x_kpc: "X (kpc)"
+    y_kpc: "Y (kpc)"
+    sun: "Sun (R☉)"
 
   ACAP_003:
     title_sweet: "SWEET-Cat"
@@ -70,6 +75,36 @@ en:
     anim_profile_rz_subtitle: "APOGEE×Gaia sample, color = [Fe/H]"
     cbar_feh: "[Fe/H] (dex)"
 
+  # =========================
+  # Animations: ANIM_003
+  # =========================
+  ANIM_003:
+    # Titles
+    anim_migration_title: "Schematic radial migration: birth radius → present radius"
+    anim_migration_subtitle: "Toy mapping from [Fe/H] + synthetic age proxy (illustration)"
+    anim_migration2_title: "Schematic radial migration (birth → present)"
+    anim_migration2_sub_random: "Order: random (inferred r_birth from ISM proxy)"
+    anim_migration2_sub_insideout: "Order: inside-out (inferred r_birth from ISM proxy)"
+    anim_migration_inside_out_title: "Toy radial migration (inside-out reveal)"
+    anim_inside_out_migration_title: "Inside-out disk growth + radial migration (stylized)"
+    anim_inside_out_migration_no_rotation_title: "External observer: inside-out formation + migration (no rotation)"
+    faceon_rotation_migration_title: "Milky Way disk: differential rotation + radial migration (illustrative)"
+    spiral_arms_crossing_title: "Stars crossing spiral arms (density-wave pattern, illustrative)"
+    inside_out_migration_1d_title: "Inside-out formation + radial migration (schematic; no rotation)"
+
+    # Legend / labels
+    legend_inward: "inward (ΔR<0)"
+    legend_outward: "outward (ΔR>0)"
+    legend_weak: "weak (|ΔR|≈0)"
+    legend_sun: "Sun"
+    inside_out_migration_1d_xlabel: "outward (ΔR>0)"
+
+    # Time / callouts used on plots
+    time_fmt: "Time: {t:4.1f} Gyr"
+    time_label_fmt: "Time: {t:.1f} Gyr"
+    sun_label: "Sun"
+    sun_callout_hdr: "Sun radial migration (illustrative)"
+    sun_callout_body: "$R_\\odot$: {rb:.2f} → {rf:.2f} kpc\n$\\Delta R_\\odot = {dr:+.2f}\\ \\mathrm{kpc}$"
 
 ru:
   common:
@@ -105,6 +140,10 @@ ru:
 
     legend_hmph_frac: "HMPH / все звёзды"
     legend_lmph_frac: "LMPH / все звёзды"
+
+    x_kpc: "X (кпк)"
+    y_kpc: "Y (кпк)"
+    sun: "Солнце (R☉)"
 
   # =========================
   # Animations: ANIM_001
@@ -142,3 +181,34 @@ ru:
     anim_profile_rz_insideout_title: "Рост диска Галактики изнутри наружу (вид с ребра)"
     anim_profile_rz_subtitle: "Выборка APOGEE×Gaia, цвет = [Fe/H]"
     cbar_feh: "[Fe/H] (dex)"
+
+  # =========================
+  # Animations: ANIM_003
+  # =========================
+  ANIM_003:
+    # Titles
+    anim_migration_title: "Схема радиальной миграции: радиус рождения → текущий радиус"
+    anim_migration_subtitle: "Игрушечное соответствие по [Fe/H] + синтетический прокси возраста (иллюстрация)"
+    anim_migration2_title: "Схема радиальной миграции (рождение → настоящее)"
+    anim_migration2_sub_random: "Порядок: случайный (r_birth по ISM-прокси)"
+    anim_migration2_sub_insideout: "Порядок: изнутри-наружу (r_birth по ISM-прокси)"
+    anim_migration_inside_out_title: "Игрушечная миграция (проявление изнутри-наружу)"
+    anim_inside_out_migration_title: "Рост диска изнутри-наружу + радиальная миграция (стилизовано)"
+    anim_inside_out_migration_no_rotation_title: "Внешний наблюдатель: рост изнутри-наружу + миграция (без вращения)"
+    faceon_rotation_migration_title: "Диск Млечного Пути: дифференциальное вращение + радиальная миграция (иллюстрация)"
+    spiral_arms_crossing_title: "Пересечение спиральных рукавов (модель плотностной волны, иллюстрация)"
+    inside_out_migration_1d_title: "Формирование изнутри-наружу + радиальная миграция (схема; без вращения)"
+
+    # Legend / labels
+    legend_inward: "внутрь (ΔR<0)"
+    legend_outward: "наружу (ΔR>0)"
+    legend_weak: "слабая (|ΔR|≈0)"
+    legend_sun: "Солнце"
+    inside_out_migration_1d_xlabel: "наружу (ΔR>0)"
+
+    # Time / callouts used on plots
+    time_fmt: "Время: {t:4.1f} млрд лет"
+    time_label_fmt: "Время: {t:.1f} млрд лет"
+    sun_label: "Солнце"
+    sun_callout_hdr: "Миграция Солнца (иллюстрация)"
+    sun_callout_body: "$R_\\odot$: {rb:.2f} → {rf:.2f} кпк\n$\\Delta R_\\odot = {dr:+.2f}\\ \\mathrm{кпк}$"

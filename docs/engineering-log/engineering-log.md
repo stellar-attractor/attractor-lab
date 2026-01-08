@@ -1011,3 +1011,12 @@ At the end of this refactor, **ANIM_002** is:
 - and ready for reuse in publications or outreach material.
 
 Speculative or exploratory visualizations have been explicitly deferred to **ANIM_003**.
+
+## 2026-01-08 15:55
+### Engineering log
+
+- finalized ANIM_003_EN.ipynb
+- finalized ANIM_003_RU.ipynb
+- proofread and finalized all scenario notebooks
+
+Project is ready for the next step - generate pdfs out of all notebooks.

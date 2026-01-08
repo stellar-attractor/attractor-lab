@@ -59,6 +59,15 @@ en:
     # Profile view (R–Z) colored by [Fe/H]
     figure_3: "Inside-out growth (edge-on): R–Z profile colored by [Fe/H]"
 
+  ANIM_003:
+    anim_migration: "Schematic radial migration: birth radius → present radius"
+    anim_migration2: "Schematic radial migration (birth → present)"
+    anim_migration_inside_out: "Toy radial migration (inside-out reveal)"
+    anim_inside_out_migration: "Inside-out disk growth + radial migration (stylized)"
+    anim_inside_out_migration_no_rotation: "External observer: inside-out formation + migration (no rotation)"
+    faceon_rotation_migration: "Milky Way disk: differential rotation + radial migration (illustrative)"
+    spiral_arms_crossing: "Stars crossing spiral arms (density-wave pattern, illustrative)"
+    inside_out_migration_1d: "Inside-out formation + radial migration (schematic; no rotation)"
 
 ru:
   ACAP_001:
@@ -120,3 +129,16 @@ ru:
 
     # Profile view (R–Z) colored by [Fe/H]
     figure_3: "Рост диска (вид с ребра): профиль R–Z, цвет = [Fe/H]"
+
+  # =========================
+  # Animations: ANIM_003
+  # =========================
+  ANIM_003:
+    anim_migration: "Схема радиальной миграции: радиус рождения → текущий радиус"
+    anim_migration2: "Схема радиальной миграции (рождение → настоящее)"
+    anim_migration_inside_out: "Игрушечная радиальная миграция (проявление изнутри-наружу)"
+    anim_inside_out_migration: "Рост диска изнутри-наружу + радиальная миграция (стилизовано)"
+    anim_inside_out_migration_no_rotation: "Внешний наблюдатель: формирование изнутри-наружу + миграция (без вращения)"
+    faceon_rotation_migration: "Диск Млечного Пути: дифференциальное вращение + радиальная миграция (иллюстрация)"
+    spiral_arms_crossing: "Пересечение спиральных рукавов (модель плотностной волны, иллюстрация)"
+    inside_out_migration_1d: "Формирование изнутри-наружу + радиальная миграция (схема; без вращения)"
