@@ -5,6 +5,10 @@ import re
 import subprocess
 from pathlib import Path
 
+# --- logging additions (only what's needed) ---
+from datetime import datetime
+import traceback
+
 TOPIC_DIR = Path(__file__).resolve().parents[1]
 TEX_DIR = TOPIC_DIR / "tex"
 BUILD_DIR = TOPIC_DIR / "build"
@@ -112,7 +116,10 @@ SUPERSCRIPT_UNICODE_TO_LATEX = {
     "⁼": r"$^{=}$",
     "⁽": r"$^{(}$",
     "⁾": r"$^{)}$",
+    # --- extra "math italic" letters that pdflatex can't handle ---
+    "𝑇": r"\ensuremath{T}",   # U+1D447 MATHEMATICAL ITALIC CAPITAL T
 }
+
 
 def sanitize_tex_unicode_math(tex: str) -> str:
     out = tex
@@ -122,7 +129,17 @@ def sanitize_tex_unicode_math(tex: str) -> str:
         out = out.replace(u, repl)
     for u, repl in SUPERSCRIPT_UNICODE_TO_LATEX.items():
         out = out.replace(u, repl)
+
+    # --- extra problematic unicode (pdflatex) ---
+    out = out.replace("\u2060", "")            # WORD JOINER (invisible), e.g. "⁠."
+    out = out.replace("≈", r"\ensuremath{\approx}")       # U+2248
+    out = out.replace("\u200b", "")            # ZERO WIDTH SPACE
+    out = out.replace("\ufeff", "")            # BOM / ZERO WIDTH NO-BREAK SPACE
+    out = out.replace("−", "-")                # U+2212 minus -> ASCII hyphen-minus
+    out = out.replace("⊙", r"\ensuremath{\odot}")         # U+2299 solar symbol
+
     return out
+
 
 def sanitize_tex_headers(tex: str) -> str:
     """
@@ -169,6 +186,58 @@ def find_body_inputs_in_template(tpl_path: Path) -> list[Path]:
 
 
 # -----------------------------------------------------------------------------
+# Failure logging (added)
+# -----------------------------------------------------------------------------
+
+FAIL_LOG = BUILD_DIR / "build_pdfs_failures.log"
+TAIL_N = 80
+
+
+def _tail_text(path: Path, n_lines: int = 80) -> str:
+    if not path.exists():
+        return f"(missing: {path})"
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        return "\n".join(lines[-n_lines:])
+    except Exception as e:
+        return f"(failed to read {path}: {e})"
+
+
+def log_failure(
+    *,
+    jobname: str,
+    tpl: Path,
+    cmd: list[str],
+    returncode: int | None,
+    log_path: Path,
+    pdf_path: Path,
+    exc: BaseException | None = None,
+) -> None:
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    with open(FAIL_LOG, "a", encoding="utf-8") as f:
+        f.write("\n" + "=" * 90 + "\n")
+        f.write(f"FAILED: {jobname}\n")
+        f.write(f"Time: {ts}\n")
+        f.write(f"Template: {tpl}\n")
+        f.write(f"Return code: {returncode}\n")
+        f.write("Command: " + " ".join(cmd) + "\n")
+        f.write(f"Expected build log: {log_path}  (exists={log_path.exists()})\n")
+        f.write(f"Expected PDF      : {pdf_path}  (exists={pdf_path.exists()})\n")
+
+        if exc is not None:
+            f.write("-" * 90 + "\n")
+            f.write("Python exception:\n")
+            f.write("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
+
+        f.write("-" * 90 + "\n")
+        f.write(f"TAIL of build log (last ~{TAIL_N} lines):\n")
+        f.write(_tail_text(log_path, TAIL_N))
+        f.write("\n")
+
+
+# -----------------------------------------------------------------------------
 # Build helpers
 # -----------------------------------------------------------------------------
 
@@ -184,19 +253,18 @@ def latexmk_build(template_path: Path, jobname: str, texinputs_dir: Path) -> Non
     # TEXINPUTS must end with ":" so TeX also searches default paths
     env["TEXINPUTS"] = f"{texinputs_dir}:{env.get('TEXINPUTS', '')}"
 
-    run(
-        [
-            "latexmk",
-            "-pdf",
-            "-interaction=nonstopmode",
-            "-halt-on-error",
-            f"-outdir={BUILD_DIR}",
-            f"-jobname={jobname}",
-            str(template_path),
-        ],
-        cwd=TEX_DIR,
-        env=env,
-    )
+    cmd = [
+        "latexmk",
+        "-pdf",
+        "-interaction=nonstopmode",
+        "-halt-on-error",
+        f"-outdir={BUILD_DIR}",
+        f"-jobname={jobname}",
+        str(template_path),
+    ]
+
+    print("+ " + " ".join(cmd))
+    subprocess.run(cmd, cwd=str(TEX_DIR), env=env, check=True)
 
 
 def derive_jobname_from_tpl(tpl: Path) -> str:
@@ -215,15 +283,21 @@ def main() -> None:
     if not TEX_DIR.exists():
         raise FileNotFoundError(f"Missing TEX_DIR: {TEX_DIR}")
 
-    # We compile from TEX_DIR, so TEXINPUTS should include:
-    # - TEX_DIR (for local preambles, shared inputs, and _tmp)
-    # - optionally: repo root, if you want wider relative \input to work
     texinputs_dir = TEX_DIR
 
     templates = sorted(TEX_DIR.glob("*.tpl.tex"))
     if not templates:
         print("No templates found in:", TEX_DIR)
         return
+
+    # reset failure log each run
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    with open(FAIL_LOG, "w", encoding="utf-8") as f:
+        f.write("build_pdfs failures log\n")
+        f.write(f"TOPIC_DIR: {TOPIC_DIR}\n")
+        f.write(f"TEX_DIR  : {TEX_DIR}\n")
+        f.write(f"BUILD_DIR: {BUILD_DIR}\n")
+        f.write("=" * 90 + "\n")
 
     print(f"Found templates: {len(templates)}")
     ok: list[str] = []
@@ -251,9 +325,61 @@ def main() -> None:
         try:
             latexmk_build(tpl, jobname, texinputs_dir)
             ok.append(jobname)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             failed.append(jobname)
-            print(f"FAILED: {jobname} (see build/{jobname}.log)")
+
+            log_path = BUILD_DIR / f"{jobname}.log"
+            pdf_path = BUILD_DIR / f"{jobname}.pdf"
+
+            cmd = [
+                "latexmk",
+                "-pdf",
+                "-interaction=nonstopmode",
+                "-halt-on-error",
+                f"-outdir={BUILD_DIR}",
+                f"-jobname={jobname}",
+                str(tpl),
+            ]
+
+            log_failure(
+                jobname=jobname,
+                tpl=tpl,
+                cmd=cmd,
+                returncode=getattr(e, "returncode", None),
+                log_path=log_path,
+                pdf_path=pdf_path,
+                exc=None,
+            )
+
+            print(f"FAILED: {jobname} (see {log_path})")
+
+        except Exception as e:
+            failed.append(jobname)
+
+            log_path = BUILD_DIR / f"{jobname}.log"
+            pdf_path = BUILD_DIR / f"{jobname}.pdf"
+
+            cmd = [
+                "latexmk",
+                "-pdf",
+                "-interaction=nonstopmode",
+                "-halt-on-error",
+                f"-outdir={BUILD_DIR}",
+                f"-jobname={jobname}",
+                str(tpl),
+            ]
+
+            log_failure(
+                jobname=jobname,
+                tpl=tpl,
+                cmd=cmd,
+                returncode=None,
+                log_path=log_path,
+                pdf_path=pdf_path,
+                exc=e,
+            )
+
+            print(f"FAILED (python): {jobname} (see {FAIL_LOG})")
 
     print("\nDone.")
     print("PDFs in:", BUILD_DIR)

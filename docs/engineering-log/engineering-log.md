@@ -1020,3 +1020,47 @@ Speculative or exploratory visualizations have been explicitly deferred to **ANI
 - proofread and finalized all scenario notebooks
 
 Project is ready for the next step - generate pdfs out of all notebooks.
+
+## 2026-01-09 09:20
+### Engineering log
+
+Topic: TOP_0001_exoplanet_birth_radius
+Date: 2026-01-09
+Status: ✅ Completed
+
+#### Summary
+
+Successfully completed the full LaTeX build pipeline for TOP_0001_exoplanet_birth_radius. All templates and generated bodies now compile cleanly with pdflatex.
+
+#### Key Work Done
+	•	Finalized Unicode → LaTeX sanitization for math-heavy content:
+	•	Fixed nested math issues ($($ ... )$)
+	•	Replaced problematic Unicode symbols (−, ⊙, math italics, subscripts/superscripts)
+	•	Confirmed that remaining failures required fixing source ipynb, not post-export sanitization
+	•	Re-ran export → build pipeline from clean state
+	•	Added detailed build failure logging (timestamp, command, template, log tail)
+	•	Verified reproducible clean build
+
+#### Result
+
+All PDFs successfully generated:
+AA_001_EN, AA_001_RU
+ACAP_001_EN, ACAP_001_RU
+ACA_001_EN, ACA_001_RU
+ACA_002_EN, ACA_002_RU
+AZ_001_EN, AZ_001_RU
+AZ_002_EN, AZ_002_RU
+CHR_001_EN, CHR_001_RU
+MIN_001_EN, MIN_001_RU
+MISC_001_EN, MISC_001_RU
+NOTE_001_EN, NOTE_001_RU
+NOTE_002_EN, NOTE_002_RU
+TERM_001_EN, TERM_001_RU
+TERM_002_EN, TERM_002_RU
+TOP_000_EN, TOP_000_RU
+
+Notes / Lessons Learned
+	•	Sanitizers are necessary but not sufficient — malformed math must be fixed at the notebook level
+	•	Build logs with tail extraction dramatically reduce debugging time
+	•	Pipeline is now stable and ready for reuse on future topics
+- 
