@@ -39,8 +39,12 @@ DPI: int = 150
 
 MP4_CODEC: str = "libx264"
 MP4_BITRATE: int = 1800
+
 # keep MP4 broadly compatible
-MP4_EXTRA_ARGS = ["-pix_fmt", "yuv420p"]
+MP4_EXTRA_ARGS = [
+    "-pix_fmt", "yuv420p",
+    "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"
+]
 
 GIF_WRITER: str = "pillow"
 GIF_LOOP: int = 0  # 0 = infinite

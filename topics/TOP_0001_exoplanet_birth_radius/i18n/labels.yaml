@@ -101,10 +101,16 @@ en:
 
     # Time / callouts used on plots
     time_fmt: "Time: {t:4.1f} Gyr"
+    time_fmt_arb: "Time: {t:4.1f} Gyr"
     time_label_fmt: "Time: {t:.1f} Gyr"
     sun_label: "Sun"
     sun_callout_hdr: "Sun radial migration (illustrative)"
-    sun_callout_body: "$R_\\odot$: {rb:.2f} → {rf:.2f} kpc\n$\\Delta R_\\odot = {dr:+.2f}\\ \\mathrm{kpc}$"
+    sun_callout_body: "R☉: {rb:.2f} → {rf:.2f} kpc\nΔR☉: {dr:+.2f} kpc"
+
+    wave_forward: "Forward"
+    wave_backward: "Backward"
+    x_arb: "X (arbitrary)"
+    y_arb: "Y (arbitrary)"
 
 ru:
   common:
@@ -124,26 +130,27 @@ ru:
     rel_freq: "Относительная частота, $F_p$"
     stars_per_bin: "Число звёзд в бине (N)"
 
-  ACAP_001:
+    # -- ACAP_001 labels --
     legend_single_stars: "одиночные звёзды"
     legend_host_stars: "звёзды с планетами"
-    legend_toy: "Упрощённая модель"
-    legend_minchev: "Модель подобная Minchev et al. (2022)"
+    legend_toy: "упрощённая GCE-модель"
+    legend_minchev: "модель, подобная Minchev et al. (2022)"
+
+   # -- ANIM_003 labels --
+    x_kpc: "X (кпк)"
+    y_kpc: "Y (кпк)"
+    sun: "Солнце (R☉)"
 
   ACAP_003:
     title_sweet: "SWEET-Cat"
     title_harps: "HARPS-GTO"
 
     legend_single: "Одиночные звёзды"
-    legend_hmph: "HMPH"
-    legend_lmph: "LMPH"
+    legend_hmph: "HMPHs"
+    legend_lmph: "LMPHs"
 
-    legend_hmph_frac: "HMPH / все звёзды"
-    legend_lmph_frac: "LMPH / все звёзды"
-
-    x_kpc: "X (кпк)"
-    y_kpc: "Y (кпк)"
-    sun: "Солнце (R☉)"
+    legend_hmph_frac: "HMPHs / все звёзды"
+    legend_lmph_frac: "LMPHs / все звёзды"
 
   # =========================
   # Animations: ANIM_001
@@ -190,13 +197,13 @@ ru:
     anim_migration_title: "Схема радиальной миграции: радиус рождения → текущий радиус"
     anim_migration_subtitle: "Игрушечное соответствие по [Fe/H] + синтетический прокси возраста (иллюстрация)"
     anim_migration2_title: "Схема радиальной миграции (рождение → настоящее)"
-    anim_migration2_sub_random: "Порядок: случайный (r_birth по ISM-прокси)"
-    anim_migration2_sub_insideout: "Порядок: изнутри-наружу (r_birth по ISM-прокси)"
-    anim_migration_inside_out_title: "Игрушечная миграция (проявление изнутри-наружу)"
+    anim_migration2_sub_random: "Порядок: случайный (вывод r_birth по ISM-прокси)"
+    anim_migration2_sub_insideout: "Порядок: изнутри-наружу (вывод r_birth по ISM-прокси)"
+    anim_migration_inside_out_title: "Игрушечная радиальная миграция (проявление изнутри-наружу)"
     anim_inside_out_migration_title: "Рост диска изнутри-наружу + радиальная миграция (стилизовано)"
-    anim_inside_out_migration_no_rotation_title: "Внешний наблюдатель: рост изнутри-наружу + миграция (без вращения)"
+    anim_inside_out_migration_no_rotation_title: "Внешний наблюдатель: формирование изнутри-наружу + миграция (без вращения)"
     faceon_rotation_migration_title: "Диск Млечного Пути: дифференциальное вращение + радиальная миграция (иллюстрация)"
-    spiral_arms_crossing_title: "Пересечение спиральных рукавов (модель плотностной волны, иллюстрация)"
+    spiral_arms_crossing_title: "Звёзды пересекают спиральные рукава (модель плотностной волны, иллюстрация)"
     inside_out_migration_1d_title: "Формирование изнутри-наружу + радиальная миграция (схема; без вращения)"
 
     # Legend / labels
@@ -211,4 +218,9 @@ ru:
     time_label_fmt: "Время: {t:.1f} млрд лет"
     sun_label: "Солнце"
     sun_callout_hdr: "Миграция Солнца (иллюстрация)"
-    sun_callout_body: "$R_\\odot$: {rb:.2f} → {rf:.2f} кпк\n$\\Delta R_\\odot = {dr:+.2f}\\ \\mathrm{кпк}$"
+    sun_callout_body: "R☉: {rb:.2f} → {rf:.2f} кпк\nΔR☉: {dr:+.2f} кпк"
+
+    wave_forward: "Вперёд"
+    wave_backward: "Назад"
+    x_arb: "X (условные единицы)"
+    y_arb: "Y (условные единицы)"

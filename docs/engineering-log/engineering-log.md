@@ -1063,4 +1063,59 @@ Notes / Lessons Learned
 	•	Sanitizers are necessary but not sufficient — malformed math must be fixed at the notebook level
 	•	Build logs with tail extraction dramatically reduce debugging time
 	•	Pipeline is now stable and ready for reuse on future topics
+
+# 2026-01-10 12:32
+## Engineering log — animation pipeline & i18n refactor (Day X)
+
+Today’s session was focused on stabilizing and understanding the animation export pipeline across the project.
+
+Key findings
+	1.	Multiple incompatible save_animation() implementations
+	•	Discovered several independent definitions of save_animation():
+	•	local helper cells inside notebooks,
+	•	ad-hoc variations with different argument conventions,
+	•	a canonical implementation in lulab.anim.defaults.
+	•	This resulted in 6 different calling patterns coexisting and “working” only accidentally.
+	2.	Hidden default behavior (GIF instead of MP4)
+	•	Root cause of unexpected GIF outputs traced to:
+
+ANIM_FORMAT = "gif"
+
+defined in lulab.anim.defaults.
+
+	•	Notebook-level bootstrap settings were silently overridden by the imported defaults.
+
+	3.	Name shadowing and implicit overrides
+	•	Local notebook helpers were redefining save_animation() and shadowing the library version.
+	•	This made global configuration (ANIM_FORMAT, codecs, DPI) unreliable and context-dependent.
+	4.	FFmpeg constraint surfaced
+	•	MP4 export failed for figures with odd pixel dimensions
+(width/height not divisible by 2).
+	•	Confirms need for centralized, defensive handling in the library layer.
+	5.	i18n + theme + format integration verified
+	•	After cleanup, animations correctly respect:
+	•	language (titles.yaml, labels.yaml),
+	•	theme (dark/light),
+	•	export format (mp4 / gif).
+	•	First fully consistent end-to-end result achieved.
+
+Decisions taken
+	•	Single source of truth
+	•	save_animation() must live only in the shared Python library.
+	•	No local redefinitions inside notebooks.
+	•	Bootstrap minimalism
+	•	Notebook bootstrap cells should:
+	•	set configuration values,
+	•	import shared helpers,
+	•	never redefine core functionality.
+	•	Clear responsibility split
+	•	Config, constants, labels → YAML / config modules
+	•	Reusable procedures → library (lulab.anim.*)
+	•	Data logic → topic-level design
+	•	Notebooks → orchestration and narrative only
+
+Status
+	•	Animation export pipeline is now understood and controllable.
+	•	Project is ready for final refactor and publication preparation.
+	•	Full cleanup and normalization scheduled for the next session.
 - 

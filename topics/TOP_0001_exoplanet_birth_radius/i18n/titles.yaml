@@ -39,9 +39,14 @@ en:
   # Animations: ANIM_001
   # =========================
   ANIM_001:
-    figure_1: "HR diagram (Teff vs log g): animated reveal"
+    figure_1: "HR diagram (Teff vs log g)"
     figure_1_lr: "Left-to-right reveal"
     figure_1_random: "Random reveal"
+    figure_2: "Metallicity distributions [Fe/H]"
+    figure_3: "Birth radius distribution - Toy vs Minchev-like"
+    figure_4: "Planet-hosting stars vs age and birth radius (SWEET vs HARPS)"
+    figure_4_sweet: "SWEET-Cat"
+    figure_4_harps: "HARPS-GTO"
 
   # =========================
   # Animations: ANIM_002
@@ -57,17 +62,22 @@ en:
     figure_2_caption: "Binned median and q16–q84 envelope revealed as R_max increases"
 
     # Profile view (R–Z) colored by [Fe/H]
-    figure_3: "Inside-out growth (edge-on): R–Z profile colored by [Fe/H]"
+    figure_3: "Inside-out growth of the Galactic disk"
+    figure_3_caption: "R–Z profile colored by [Fe/H]"
 
   ANIM_003:
     anim_migration: "Schematic radial migration: birth radius → present radius"
     anim_migration2: "Schematic radial migration (birth → present)"
-    anim_migration_inside_out: "Toy radial migration (inside-out reveal)"
+    anim_migration_sub_insideout: "Toy radial migration (inside-out reveal)"
     anim_inside_out_migration: "Inside-out disk growth + radial migration (stylized)"
     anim_inside_out_migration_no_rotation: "External observer: inside-out formation + migration (no rotation)"
     faceon_rotation_migration: "Milky Way disk: differential rotation + radial migration (illustrative)"
     spiral_arms_crossing: "Stars crossing spiral arms (density-wave pattern, illustrative)"
     inside_out_migration_1d: "Inside-out formation + radial migration (schematic; no rotation)"
+    longitudinal_wave_title: "Disk (illustrative): stars + longitudinal traveling wave (actual displacement)"
+    time_fmt: "Time: {t:.1f} Gyr"
+    bh_disk_title: "Accretion disk around a black hole (illustrative simulation)"
+    time_fmt_arb: "t = {t:5.1f}  (arb. units)"
 
 ru:
   ACAP_001:
@@ -113,6 +123,11 @@ ru:
     figure_1: "Диаграмма Киля (Teff vs log g): анимированное проявление"
     figure_1_lr: "Проявление слева направо"
     figure_1_random: "Случайное проявление"
+    figure_2: "Распределения металличности [Fe/H]"
+    figure_3: "Распределение радиусов рождения — Toy vs Minchev-подобная модель"
+    figure_4: "Звёзды с планетами vs возраст и радиус рождения (SWEET vs HARPS)"
+    figure_4_sweet: "SWEET-Cat"
+    figure_4_harps: "HARPS-GTO"
 
   # =========================
   # Animations: ANIM_002
@@ -129,6 +144,7 @@ ru:
 
     # Profile view (R–Z) colored by [Fe/H]
     figure_3: "Рост диска (вид с ребра): профиль R–Z, цвет = [Fe/H]"
+    figure_3_caption: "Профиль R–Z, цвет = [Fe/H]"
 
   # =========================
   # Animations: ANIM_003
@@ -136,9 +152,13 @@ ru:
   ANIM_003:
     anim_migration: "Схема радиальной миграции: радиус рождения → текущий радиус"
     anim_migration2: "Схема радиальной миграции (рождение → настоящее)"
-    anim_migration_inside_out: "Игрушечная радиальная миграция (проявление изнутри-наружу)"
+    anim_migration_sub_insideout: "Игрушечная радиальная миграция (проявление изнутри-наружу)"
     anim_inside_out_migration: "Рост диска изнутри-наружу + радиальная миграция (стилизовано)"
     anim_inside_out_migration_no_rotation: "Внешний наблюдатель: формирование изнутри-наружу + миграция (без вращения)"
     faceon_rotation_migration: "Диск Млечного Пути: дифференциальное вращение + радиальная миграция (иллюстрация)"
-    spiral_arms_crossing: "Пересечение спиральных рукавов (модель плотностной волны, иллюстрация)"
+    spiral_arms_crossing: "Звёзды пересекают спиральные рукава (модель плотностной волны, иллюстрация)"
     inside_out_migration_1d: "Формирование изнутри-наружу + радиальная миграция (схема; без вращения)"
+    longitudinal_wave_title: "Диск (иллюстрация): звёзды + продольная бегущая волна (реальное смещение)"
+    time_fmt: "Время: {t:.1f} млрд лет"
+    bh_disk_title: "Аккреционный диск вокруг чёрной дыры (иллюстративная симуляция)"
+    time_fmt_arb: "t = {t:5.1f}  (усл. ед.)"
