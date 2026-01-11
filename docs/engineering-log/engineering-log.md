@@ -1119,3 +1119,95 @@ Status
 	•	Project is ready for final refactor and publication preparation.
 	•	Full cleanup and normalization scheduled for the next session.
 - 
+
+# 2026-01-11 15:00
+# Engineering Log — PDF Pipeline Hardening (TOP_0001 / TeX)
+
+**Date:** 2026-01-11  
+**Topic:** `TOP_0001_exoplanet_birth_radius`  
+**Scope:** LaTeX / PDF generation pipeline  
+**Goal:** Stabilize PDF generation by fixing issues incrementally on a single document before scaling to the full batch.
+
+---
+
+## 1. Working Strategy
+
+- Switched to a **single-file focus mode**: fix one PDF end-to-end instead of chasing errors across the whole batch.
+- Confirmed that the authoritative pipeline is:
+- Explicitly **abandoned md → pandoc → pdf** for this workflow.
+
+---
+
+## 2. Figures and Captions
+
+- Identified why figures were missing in `ACAP_001`:
+- the notebook contained **no markdown image syntax** (`![...](...)`);
+- all figures were generated dynamically in code cells.
+- Switched validation to a notebook with explicit figures (`AZ_001_EN`).
+- Fixed the exporter to:
+- convert markdown images to proper LaTeX figures:
+  ```tex
+  \begin{figure}
+    \includegraphics{...}
+    \caption{...}
+  \end{figure}
+  ```
+- **merge or discard markdown caption lines** like  
+  `*Figure N. ...*` instead of duplicating them.
+- Result: figures and captions render correctly and consistently in `AZ_001_EN.pdf`.
+
+---
+
+## 3. Markdown → TeX Exporter (`export_bodies_from_ipynb.py`)
+
+Stabilized and corrected:
+
+### Figures
+- Look-ahead logic to detect caption lines following an image.
+- Skips empty lines between image and caption.
+- Ensures **exactly one** `\caption{}` per figure.
+
+### Lists
+- Fixed `enumerate` handling:
+- no longer opens/closes the environment for each item.
+- tracks state with `in_enum`.
+- Added safe support for `itemize` (`-` / `*` bullets).
+- Ensured clean transitions between enumerate, itemize, figures, and text.
+
+### Math sanitization
+- Introduced controlled fixes for common math patterns:
+- word subscripts: `_birth`, `_ISM` → `_{\mathrm{birth}}`
+- text units inside math: `dex`, `kpc`
+- Fixed Python regex replacement bug (`\m` escape) by switching to function-based replacements.
+- Removed **pandoc-style artifacts** (`$begin:math:...$`) from regex logic — only real LaTeX math is supported.
+
+---
+
+### 4. Single-PDF Build Workflow
+
+- Created a dedicated runner to build **one PDF from one template**.
+- Uses:
+```bash
+latexmk -pdf -interaction=nonstopmode -halt-on-error
+	•	All debugging done via build/<JOB>.log.
+
+
+### 5. Current Status
+	•	✅ Figures and captions: stable
+	•	✅ Enumerated and bullet lists: stable
+	•	⚠️ Remaining issues (postponed):
+	•	math edge cases in ACAP_001_EN (e.g. dashes in math mode, some subscripts)
+	•	minor symbol conflicts (–, —, text commands in math)
+
+
+### 6. Design Rules Agreed
+	•	All config, constants, paths, i18n, titles → separate config/modules.
+	•	Reusable helpers (save_figure(), save_animation()) → central library (lulab), no local forks.
+	•	PDF pipeline validation always starts from one document, then scales to batch.
+
+
+### 7. Next Steps
+	1.	Return to ACAP_001_EN and finish:
+	•	subscripts and units in math (T_eff, log g, \chi^2)
+	•	illegal text commands inside math mode
+	2.	After exporter is fully stable, run batch build and collect regressions.

@@ -3,6 +3,15 @@
 % Global preamble (single source of truth)
 \input{preamble_en.tex}
 
+\usepackage{graphicx}
+
+% We compile with cwd = tex/, so figures live one level up:
+\graphicspath{
+  {../figures/}
+  {../figures/en/}
+  {../figures/common/}
+}
+
 \title{Academy: Practicum Visualizing Galactic Chemical Evolution, Birth Radius, and Exoplanets}
 \author{Attractor Lab}
 \date{\today}

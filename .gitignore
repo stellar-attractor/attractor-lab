@@ -267,6 +267,8 @@ topics/**/animations/*
 *.mp4
 *.gif
 
+*.bak
+
 # large processed data
 topics/**/data/processed/*.parquet
 topics/**/data/processed/*_proxy.csv

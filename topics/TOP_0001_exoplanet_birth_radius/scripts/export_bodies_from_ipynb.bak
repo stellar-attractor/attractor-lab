@@ -65,10 +65,9 @@ UNICODE_TO_LATEX = {
     "❗": r"\textbf{[!]} ",
     "🔍": r"\textbf{[CHECK]} ",
     "💡": r"\textbf{[IDEA]} ",
-    # keep your special markers (pandoc-style); sanitize_tex will preserve them
-    "👉": r"$begin:math:text$\rightarrow$end:math:text$ ",
+    "👉": r"$begin:math:text$\\rightarrow$end:math:text$ ",
     "🌌": r"\textbf{[SPACE]} ",
-    "☉": r"$begin:math:text$\odot$end:math:text$",
+    "☉": r"$begin:math:text$\\odot$end:math:text$",
 }
 
 LATEX_SPECIALS = {
@@ -77,15 +76,17 @@ LATEX_SPECIALS = {
     "%": r"\%",
     "&": r"\&",
     "_": r"\_",
-    # keep braces unescaped
+    # keep braces unescaped (you already decided this)
+    # "{": r"\{",
+    # "}": r"\}",
     "~": r"\textasciitilde{}",
     "^": r"\textasciicircum{}",
 }
 
 # Detect math blocks and keep them intact (do not escape inside).
-# Supports: $...$, $$...$$, $begin:math:text$...$end:math:text$, $begin:math:display$...$end:math:display$
+# Supports: $...$, $$...$$, $begin:math:text$\.\.\.$end:math:text$, $begin:math:display$\.\.\.$end:math:display$
 _MATH_RE = re.compile(
-    r"(\$\$.*?\$\$|\$(?!\$).*?\$)",
+    r"(\$\$.*?\$\$|\$.*?\$|\\$begin:math:text$\.\+\?\\\\$end:math:text$|\\$begin:math:display$\.\+\?\\\\$end:math:display$)",
     re.DOTALL,
 )
 
@@ -136,13 +137,13 @@ _MATH_INLINE_OR_DISPLAY_RE = re.compile(r"(\$\$.*?\$\$|\$.*?\$)", re.DOTALL)
 _SUBSCRIPT_WORD_RE = re.compile(r"_(?!\{)([A-Za-z]{2,})\b")  # _ISM, _birth
 
 def _fix_math(s: str) -> str:
-    # fix: _word -> _{\mathrm{word}}
     def repl(m: re.Match) -> str:
         word = m.group(1)
         return r"_{\mathrm{" + word + "}}"
+
     s = _SUBSCRIPT_WORD_RE.sub(repl, s)
 
-    # units / tokens inside math
+    # единицы и текстовые токены внутри math
     s = s.replace("dex", r"\mathrm{dex}")
     s = s.replace("kpc", r"\mathrm{kpc}")
 
@@ -152,8 +153,8 @@ def _sanitize_preserving_math(s: str) -> str:
     parts = []
     last = 0
     for m in _MATH_INLINE_OR_DISPLAY_RE.finditer(s):
-        parts.append(sanitize_tex(s[last:m.start()]))   # non-math
-        parts.append(_fix_math(m.group(0)))             # math
+        parts.append(sanitize_tex(s[last:m.start()]))   # вне math — санитайзим
+        parts.append(_fix_math(m.group(0)))             # внутри math — чиним индексы
         last = m.end()
     parts.append(sanitize_tex(s[last:]))
     return "".join(parts)
@@ -163,9 +164,7 @@ def _sanitize_preserving_math(s: str) -> str:
 # =============================================================================
 
 # Markdown image: ![alt](path)
-_IMG_MD_RE = re.compile(
-    r"^\s*!\[(?P<alt>[^\]]*)\]\((?P<path>[^)]+)\)\s*$"
-)
+_IMG_MD_RE = re.compile(r"^\s*!\[(?P<alt>[^\]]*)\]\((?P<path>[^)]+)\)\s*$")
 
 # Caption line after image:
 #   *Figure 1. Data Samples*
@@ -176,6 +175,9 @@ _FIGCAP_MD_RE = re.compile(
 )
 
 _ENUM_MD_RE = re.compile(r"^\s*(\d+)\.\s+(.*)$")
+_HR_MD_RE   = re.compile(r"^\s*---+\s*$")
+
+# "- text" or "* text" bullet (markdown)
 _BULLET_MD_RE = re.compile(r"^\s*[-*]\s+(?P<txt>.+?)\s*$")
 
 def md_to_tex(md: str) -> str:
@@ -184,21 +186,10 @@ def md_to_tex(md: str) -> str:
 
     in_enum = False
     in_itemize = False
-    in_display_math = False  # multiline $$ ... $$ passthrough
 
     i = 0
     while i < len(lines):
         ln = lines[i].rstrip()
-        s = ln.strip()
-
-        # --- multiline display math passthrough ($$ ... $$) ---
-        # IMPORTANT: toggle by PARITY of '$$' occurrences on the line
-        if in_display_math or s.startswith("$$") or s.endswith("$$"):
-            out.append(ln)  # RAW
-            if s.count("$$") % 2 == 1:
-                in_display_math = not in_display_math
-            i += 1
-            continue
 
         # --- markdown image: ![alt](path) ---
         m = _IMG_MD_RE.match(ln)
@@ -313,15 +304,15 @@ def md_to_tex(md: str) -> str:
             out.append(r"\item " + _sanitize_preserving_math(txt))
             i += 1
             continue
-        else:
-            # close enumerate if current line is not an enum item
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
 
         # --- bullet list item: "- text" / "* text" ---
         m_b = _BULLET_MD_RE.match(ln)
         if m_b:
+            # close enumerate if we switch to bullets
+            if in_enum:
+                out.append(r"\end{enumerate}")
+                in_enum = False
+
             if not in_itemize:
                 out.append(r"\begin{itemize}")
                 in_itemize = True
@@ -331,11 +322,12 @@ def md_to_tex(md: str) -> str:
             i += 1
             continue
         else:
+            # if we were in itemize and current line is not a bullet, close itemize
             if in_itemize:
                 out.append(r"\end{itemize}")
                 in_itemize = False
 
-        # --- normal text line ---
+        # --- normal text line (stay inside enumerate if it's open) ---
         ln2 = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", ln)
         ln2 = re.sub(r"\*(.+?)\*", r"\\emph{\1}", ln2)
         out.append(_sanitize_preserving_math(ln2))
