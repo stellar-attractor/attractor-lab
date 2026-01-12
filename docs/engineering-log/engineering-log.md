@@ -1211,3 +1211,143 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error
 	•	subscripts and units in math (T_eff, log g, \chi^2)
 	•	illegal text commands inside math mode
 	2.	After exporter is fully stable, run batch build and collect regressions.
+
+
+# 2026-01-12 14:12
+# Engineering Log — TOP_0001 / Export notebooks → LaTeX bodies (stabilization)
+
+## Scope
+Goal: make `export_bodies_from_ipynb.py` reliably convert Jupyter notebooks into LaTeX *body* fragments used by `*.tpl.tex` builds, preserving:
+- markdown structure (3-level hierarchy),
+- figures and captions,
+- math and subscripts,
+- lists (enum + bullets),
+- optional code listings,
+- references/citations.
+
+This log summarizes the **latest stabilization pass** and what is planned next.
+
+---
+
+## What was fixed / stabilized today
+
+### 1) Inline figure captions → real LaTeX figures (works)
+**Problem:** notebook text lines like `*Figure 1.* ...` were not reliably producing an inserted `\begin{figure}...\end{figure}` block at the right place, and some figures were inserted at wrong locations.
+
+**Fix:**
+- Added/validated inline-figure detection using `_FIG_INLINE_LINE_RE`.
+- Resolved figure file on disk by probing candidates:
+  - `figures/<lang>/<nb_id>_Figure_<N>.png|jpg|pdf`
+- Inserted the figure block **at the caption line location**, then emitted the caption line as sanitized text.
+- Removed accidental “early insert” behavior (figure appearing after cell 0).
+
+**Status:** ✅ figures now appear “by place” where `*Figure N.*` is in markdown.
+
+---
+
+### 2) List behavior (enumerate + itemize) stabilized again
+**Problem:** enumeration started “resetting” or becoming non-continuous due to closing `enumerate` at every non-enum line (caused by earlier logic that aggressively closes the environment).
+
+**Fix:**
+- Enumerate now closes only when:
+  - next non-empty line is not another enum item, OR
+  - we explicitly switch to itemize, header, hr, figure, etc.
+- Bullet lists (`-` / `*`) are handled via `itemize` with clean transitions:
+  - close `enumerate` when bullets begin
+  - close `itemize` when bullets end
+
+**Status:** ✅ list continuity restored.
+
+---
+
+### 3) Horizontal rule `---` → visual separator in PDF
+**Requirement:** mimic notebook section separators.
+
+**Fix:**
+- Added `_HR_MD_RE` handling:
+  - closes open lists
+  - inserts `\noindent\rule{\linewidth}{0.4pt}`
+
+**Status:** ✅ cosmetic parity with notebooks.
+
+---
+
+### 4) Optional inclusion of code cells via `lstlisting` (works)
+**Problem:** needed a simple way to include code only for practical notebooks.
+
+**Fix:**
+- Added `INCLUDE_CODE_CELLS` flag and code-cell branch in `extract_markdown_cells()`
+- Inserted `lstlisting` blocks around cell source code.
+- Ensured LaTeX preamble contains `listings` config (kept in `preamble_*.tex` only; removed duplicates from templates).
+
+**Status:** ✅ code listings compile and can be disabled via a single constant.
+
+---
+
+### 5) UTF-8 / Unicode failures inside listings (fixed)
+**Problem:** `Invalid UTF-8 byte sequence` triggered by unicode in code comments/strings (e.g., em dash, ellipsis, Cyrillic, etc.).
+
+**Fix:**
+- Added `_sanitize_code_for_listings()` applied to code-cell source before emitting `lstlisting`.
+- Sanitizer normalizes/rewrites problematic unicode (e.g., `—`, `…`, etc.) to LaTeX-safe equivalents.
+
+**Status:** ✅ no more UTF-8 crashes in listings.
+
+---
+
+### 6) Citations + bibliography (works, with current behavior)
+**Requirement:**
+- Convert `[@key]` into proper citations
+- Add bibliography from `../refs/references.bib`
+
+**Fix:**
+- Introduced a citation regex (`_CITE_RE`) and replaced `[@key]` with `\cite{key}`.
+- Track `used_cite_keys` across markdown cells per notebook.
+- Append generated `thebibliography` block at end *only if citations were used*.
+
+**Known behavior:**
+- Bibliography includes **only cited keys** (standard practice).
+- Duplicate "References" headers were resolved by keeping **one** title source.
+
+**Status:** ✅ citations and refs compile; behavior accepted.
+
+---
+
+## Current constraints / intentional decisions
+
+### LaTeX hierarchy limit
+We keep strict 3-level structure (`section/subsection/subsubsection`) because deeper (`paragraph/subparagraph`) can produce “glued” layout and inconsistent spacing in LaTeX.
+
+Outcome: notebooks needing deeper hierarchy must be edited back to 3 levels.
+
+---
+
+## Tomorrow’s main task (plan)
+### “Guarantee the rest of the notebooks”
+1) Run exporter on all notebooks under `TOP_0001/notebooks`.
+2) Compile all `*.tpl.tex` PDFs (AZ/ACAP/ACA/etc).
+3) Collect failures and classify into:
+   - markdown edge cases (rare formatting patterns)
+   - missing figures / wrong ids
+   - unusual math blocks
+   - missing bib keys
+4) Fix only **minimal**, **isolated** cases—no architecture changes unless repeated pattern.
+
+---
+
+## Repo packaging readiness (after tomorrow)
+When all notebooks compile:
+- Freeze exporter behavior (tag release)
+- Document pipeline in README:
+  - how to export bodies
+  - how to build PDFs
+  - how figures should be named (`NOTEBOOK_Figure_N`)
+  - how to cite (`[@key]`)
+- Commit stable artifacts:
+  - scripts
+  - templates
+  - preambles
+  - refs
+  - optionally: built PDFs in `build/`
+
+---

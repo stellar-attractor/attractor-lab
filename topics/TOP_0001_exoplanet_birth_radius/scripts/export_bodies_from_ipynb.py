@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 from typing import Iterable
+import base64
+import hashlib
 
 # =============================================================================
 # CONFIG
@@ -13,6 +15,9 @@ TOPIC_DIR = Path(__file__).resolve().parents[1]
 NB_DIR = TOPIC_DIR / "notebooks"
 OUT_DIR = TOPIC_DIR / "tex" / "_tmp"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+INCLUDE_CODE_CELLS = False
+REFS_BIB = TOPIC_DIR / "refs" / "references.bib"
+_BIB_PLACEHOLDER = "__BIBLIOGRAPHY__"
 
 # =============================================================================
 # Unicode → LaTeX sanitization (for pdfLaTeX)
@@ -77,6 +82,7 @@ LATEX_SPECIALS = {
     "%": r"\%",
     "&": r"\&",
     "_": r"\_",
+    "@": r"\@",
     # keep braces unescaped
     "~": r"\textasciitilde{}",
     "^": r"\textasciicircum{}",
@@ -112,7 +118,8 @@ def _sanitize_non_math(t: str) -> str:
 
     placeholders: dict[str, str] = {}
     for i, (u, latex) in enumerate(UNICODE_TO_LATEX.items()):
-        ph = f"@@U2L{i}@@"
+#        ph = f"@@U2L{i}@@"
+        ph = f"ZZU2L{i}ZZ"
         if u in t:
             t = t.replace(u, ph)
             placeholders[ph] = latex
@@ -159,6 +166,175 @@ def _sanitize_preserving_math(s: str) -> str:
     return "".join(parts)
 
 # =============================================================================
+# Image Helper
+# =============================================================================
+
+# --- detect figure saves inside code cells ---
+_SAVE_FIG0_RE = re.compile(r"""save_fig0\(\s*["'](?P<id>[^"']+)["']""")
+_SAVE_FIG_RE  = re.compile(r"""save_fig\(\s*["'](?P<id>[^"']+)["']""")
+
+_NOTEBOOK_RE = re.compile(r'^\s*NOTEBOOK\s*:\s*str\s*=\s*["\'](?P<v>[^"\']+)["\']|^\s*NOTEBOOK\s*=\s*["\'](?P<v2>[^"\']+)["\']', re.M)
+_LANG_RE     = re.compile(r'^\s*LANG\s*:\s*str\s*=\s*["\'](?P<v>en|ru)["\']|^\s*LANG\s*=\s*["\'](?P<v2>en|ru)["\']', re.M)
+
+def _detect_notebook_and_lang(code: str, nb_stem: str, default_lang: str = "en") -> tuple[str, str]:
+    nb = nb_stem
+    lang = default_lang
+
+    mnb = _NOTEBOOK_RE.search(code)
+    if mnb:
+        nb = (mnb.group("v") or mnb.group("v2") or nb).strip()
+
+    ml = _LANG_RE.search(code)
+    if ml:
+        lang = (ml.group("v") or ml.group("v2") or lang).strip()
+
+    return nb, lang
+
+def _existing_figure_relpath(fig_dir: Path, fig_id: str) -> str | None:
+    # try common extensions in order
+    for ext in (".png", ".pdf", ".jpg", ".jpeg"):
+        p = fig_dir / f"{fig_id}{ext}"
+        if p.exists():
+            return str(Path("..") / "figures" / fig_dir.name / p.name).replace("\\", "/")
+    return None
+
+
+# =============================================================================
+# BibTeX Helper
+# =============================================================================
+
+_CITE_RE = re.compile(r"\[@(?P<key>[A-Za-z0-9_:\-]+)\]")
+
+def _parse_bibtex(path: Path) -> dict[str, dict[str, str]]:
+    """
+    Very small BibTeX parser for our controlled .bib:
+    @type{key, field = {value}, ...}
+    Returns dict: key -> fields dict (lowercased field names).
+    """
+    if not path.exists():
+        return {}
+
+    txt = path.read_text(encoding="utf-8", errors="replace")
+
+    entries: dict[str, dict[str, str]] = {}
+    # split by @...{key,
+    for m in re.finditer(r"@(\w+)\s*\{\s*([^,]+)\s*,", txt):
+        start = m.start()
+        key = m.group(2).strip()
+        # naive: find matching closing brace of the entry
+        # take text from this @ to next @ or EOF
+        nxt = txt.find("\n@", m.end())
+        block = txt[start:(nxt if nxt != -1 else len(txt))]
+
+        fields: dict[str, str] = {}
+        # field = {...} OR field = "..."
+        for fm in re.finditer(r"(\w+)\s*=\s*(\{.*?\}|\".*?\")\s*,?", block, re.DOTALL):
+            fname = fm.group(1).strip().lower()
+            val = fm.group(2).strip()
+            if val.startswith("{") and val.endswith("}"):
+                val = val[1:-1]
+            elif val.startswith('"') and val.endswith('"'):
+                val = val[1:-1]
+            val = " ".join(val.split())  # normalize whitespace
+            fields[fname] = val
+
+        entries[key] = fields
+
+    return entries
+
+
+def _format_bibitem(key: str, f: dict[str, str]) -> str:
+    """
+    Minimal 'accepted' article-ish formatting.
+    """
+    author = f.get("author", "").strip()
+    year = f.get("year", "").strip()
+    title = f.get("title", "").strip()
+    journal = f.get("journal", "").strip()
+    volume = f.get("volume", "").strip()
+    number = f.get("number", "").strip()
+    pages = f.get("pages", "").strip()
+    doi = f.get("doi", "").strip()
+    url = f.get("url", "").strip()
+    eprint = f.get("eprint", "").strip()
+
+    bits: list[str] = []
+
+    if author:
+        bits.append(sanitize_tex(author))
+    if year:
+        bits.append(f"({sanitize_tex(year)})")
+    if title:
+        bits.append(r"\emph{" + sanitize_tex(title) + r"}")
+
+    jbits: list[str] = []
+    if journal:
+        jbits.append(sanitize_tex(journal))
+    if volume:
+        if number:
+            jbits.append(sanitize_tex(volume) + f"({sanitize_tex(number)})")
+        else:
+            jbits.append(sanitize_tex(volume))
+    if pages:
+        jbits.append(sanitize_tex(pages))
+    if jbits:
+        bits.append(", ".join(jbits))
+
+    # arXiv/eprint if no journal provided (or in addition)
+    if eprint and not journal:
+        bits.append("arXiv:" + sanitize_tex(eprint))
+
+    if doi:
+        bits.append("DOI: " + sanitize_tex(doi))
+    if url:
+        bits.append("URL: " + sanitize_tex(url))
+
+    return r"\bibitem{" + key + "}" + " " + ". ".join([b for b in bits if b]) + "."
+
+
+def _build_thebibliography(used_keys: list[str], bib: dict[str, dict[str, str]]) -> str:
+    if not used_keys:
+        return ""  # nothing referenced
+
+    out: list[str] = []
+    # IMPORTANT: do NOT add another "References" header here —
+    # the markdown "## References" already becomes \subsection*{References}
+    out.append(r"\begin{thebibliography}{99}")
+
+    for key in used_keys:
+        fields = bib.get(key)
+        if fields is None:
+            # keep a visible stub if key not found
+            out.append(
+                r"\bibitem{" + key + r"} " + sanitize_tex(f"[MISSING IN BIB] {key}") + "."
+            )
+        else:
+            out.append(_format_bibitem(key, fields))
+
+    out.append(r"\end{thebibliography}")
+    return "\n".join(out)
+
+def _format_harvard_cite(key: str, fields: dict[str, str]) -> str:
+    """
+    Return 'Author et al. (Year)' or 'Author (Year)'
+    """
+    author = fields.get("author", "").strip()
+    year = fields.get("year", "").strip()
+
+    if not author or not year:
+        return f"[{key}]"  # fallback
+
+    # split authors
+    authors = [a.strip() for a in author.replace(" and ", ",").split(",")]
+
+    first = authors[0]
+    if len(authors) > 1:
+        return f"{first} et al. ({year})"
+    else:
+        return f"{first} ({year})"
+    
+
+# =============================================================================
 # Markdown → LaTeX (minimal, controlled)
 # =============================================================================
 
@@ -177,8 +353,14 @@ _FIGCAP_MD_RE = re.compile(
 
 _ENUM_MD_RE = re.compile(r"^\s*(\d+)\.\s+(.*)$")
 _BULLET_MD_RE = re.compile(r"^\s*[-*]\s+(?P<txt>.+?)\s*$")
+_HR_MD_RE = re.compile(r"^\s*---+\s*$")
 
-def md_to_tex(md: str) -> str:
+_FIG_INLINE_LINE_RE = re.compile(
+    r"^\s*\*?\s*(?:Figure|Fig\.?)\s+(?P<num>\d+)\.\s*\*?\s*(?P<rest>.*?)\s*\*?\s*$",
+    re.IGNORECASE,
+)
+
+def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | None = None, bib: dict[str, dict[str, str]],) -> str:
     lines = md.splitlines()
     out: list[str] = []
 
@@ -186,13 +368,36 @@ def md_to_tex(md: str) -> str:
     in_itemize = False
     in_display_math = False  # multiline $$ ... $$ passthrough
 
+    def _replace_cites(s: str) -> str:
+        def repl(m: re.Match) -> str:
+            key = m.group("key")
+
+            if used_cite_keys is not None:
+                used_cite_keys.add(key)
+
+            fields = bib.get(key)
+            if fields:
+                return _format_harvard_cite(key, fields)
+            else:
+                return f"[{key}]"
+
+        return _CITE_RE.sub(repl, s)
+    
+    def _close_lists() -> None:
+        nonlocal in_enum, in_itemize
+        if in_itemize:
+            out.append(r"\end{itemize}")
+            in_itemize = False
+        if in_enum:
+            out.append(r"\end{enumerate}")
+            in_enum = False
+
     i = 0
     while i < len(lines):
         ln = lines[i].rstrip()
         s = ln.strip()
 
         # --- multiline display math passthrough ($$ ... $$) ---
-        # IMPORTANT: toggle by PARITY of '$$' occurrences on the line
         if in_display_math or s.startswith("$$") or s.endswith("$$"):
             out.append(ln)  # RAW
             if s.count("$$") % 2 == 1:
@@ -200,18 +405,45 @@ def md_to_tex(md: str) -> str:
             i += 1
             continue
 
-        # --- markdown image: ![alt](path) ---
-        m = _IMG_MD_RE.match(ln)
-        if m:
-            # close lists before a figure
+                # --- enumerated list item: "1. text" ---
+        m_enum = _ENUM_MD_RE.match(ln)
+        if m_enum:
+            # close itemize if we switch to enumerate
             if in_itemize:
                 out.append(r"\end{itemize}")
                 in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
 
-            alt = (m.group("alt") or "").strip()
+            # open enumerate once
+            if not in_enum:
+                out.append(r"\begin{enumerate}")
+                in_enum = True
+
+            txt = (m_enum.group(2) or "").strip()
+            txt = _replace_cites(txt)
+            out.append(r"\item " + _sanitize_preserving_math(txt))
+
+            # IMPORTANT:
+            # Do NOT close enumerate here.
+            # It must stay open so that following paragraphs belong to the same \item.
+            # We'll close it only when we hit a real boundary (headers/hr/figure/bullets/EOF)
+            # or an explicit "blank-line + next is not enum" rule elsewhere.
+
+            i += 1
+            continue
+
+        # --- horizontal rule (---) ---
+        if _HR_MD_RE.match(ln):
+            _close_lists()
+            out.append(r"\noindent\rule{\linewidth}{0.4pt}")
+            i += 1
+            continue
+
+        # --- markdown image: ![alt](path) ---
+        m = _IMG_MD_RE.match(ln)
+        if m:
+            _close_lists()
+
+            alt = (m.group("alt") or "").strip()   # may contain $...$
             pth = (m.group("path") or "").strip()
 
             # Lookahead: skip blank lines, then check "*Figure N. ...*"
@@ -234,65 +466,91 @@ def md_to_tex(md: str) -> str:
                 out.append(r"\caption{" + sanitize_tex(caption) + "}")
             out.append(r"\end{figure}")
 
-            # Consume caption line if present (plus any blank lines between)
+            # Consume caption line if present (plus blank lines between)
             if figcap:
                 i = j + 1
             else:
                 i += 1
             continue
 
+        # --- inline figure reference line: "*Figure 1.* ..." / "Figure 1. ..." / "*Fig. 1.* ..." ---
+        mfig = _FIG_INLINE_LINE_RE.match(ln)
+        if mfig:
+            _close_lists()
+
+            num = mfig.group("num")
+            rest = (mfig.group("rest") or "").strip()
+            rest = rest.rstrip("*").strip()
+
+            # Support BOTH naming conventions we saw in your repo:
+            #   ACAP_001_Figure_1.png  (save_fig0 convention)
+            #   ACAP_001_figure_1.png  (older md refs)
+            name_variants = [
+                f"{nb_id}_Figure_{num}",
+                f"{nb_id}_figure_{num}",
+            ]
+            ext_variants = ["png", "jpg", "pdf"]
+
+            fig_path = None
+            for base in name_variants:
+                for ext in ext_variants:
+                    p = TOPIC_DIR / "figures" / lang / f"{base}.{ext}"
+                    if p.exists():
+                        fig_path = p
+                        break
+                if fig_path is not None:
+                    break
+
+            if fig_path is not None:
+                rel = "../" + fig_path.relative_to(TOPIC_DIR).as_posix()
+
+                out.append(r"\begin{figure}[!ht]")
+                out.append(r"\centering")
+                out.append(r"\includegraphics[width=\linewidth]{" + rel + "}")
+
+                # put caption into \caption{} (systematic TeX)
+                if rest:
+                    rest2 = _replace_cites(rest)
+                    out.append(r"\caption{" + _sanitize_preserving_math(rest2) + "}")
+                else:
+                    out.append(r"\caption{Figure " + num + "}")
+
+                out.append(r"\end{figure}")
+            else:
+                # fallback: keep as text (but still sanitize + cites)
+                ln3 = _replace_cites(ln)
+                out.append(_sanitize_preserving_math(ln3))
+
+            i += 1
+            continue
+
         # --- headers (close lists before headers) ---
         if ln.startswith("##### "):
-            if in_itemize:
-                out.append(r"\end{itemize}")
-                in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
-            out.append(r"\subsubsection{" + sanitize_tex(ln[6:]) + "}")
+            _close_lists()
+            out.append(r"\subsubsection*{" + sanitize_tex(ln[6:]) + "}")
             i += 1
             continue
 
         if ln.startswith("#### "):
-            if in_itemize:
-                out.append(r"\end{itemize}")
-                in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
+            _close_lists()
             out.append(r"\subsubsection*{" + sanitize_tex(ln[5:]) + "}")
             i += 1
             continue
 
         if ln.startswith("### "):
-            if in_itemize:
-                out.append(r"\end{itemize}")
-                in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
+            _close_lists()
             out.append(r"\subsubsection*{" + sanitize_tex(ln[4:]) + "}")
             i += 1
             continue
 
         if ln.startswith("## "):
-            if in_itemize:
-                out.append(r"\end{itemize}")
-                in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
+            _close_lists()
             out.append(r"\subsection*{" + sanitize_tex(ln[3:]) + "}")
             i += 1
             continue
 
         if ln.startswith("# "):
-            if in_itemize:
-                out.append(r"\end{itemize}")
-                in_itemize = False
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
+            _close_lists()
             out.append(r"\section*{" + sanitize_tex(ln[2:]) + "}")
             i += 1
             continue
@@ -300,33 +558,42 @@ def md_to_tex(md: str) -> str:
         # --- enumerated list item: "1. text" ---
         m_enum = _ENUM_MD_RE.match(ln)
         if m_enum:
-            # close itemize if it was open
+            # close itemize if we switch to enumerate
             if in_itemize:
                 out.append(r"\end{itemize}")
                 in_itemize = False
 
+            # open enumerate once
             if not in_enum:
                 out.append(r"\begin{enumerate}")
                 in_enum = True
 
-            txt = m_enum.group(2).strip()
+            txt = (m_enum.group(2) or "").strip()
+            txt = _replace_cites(txt)
             out.append(r"\item " + _sanitize_preserving_math(txt))
+
+            # IMPORTANT:
+            # Do NOT close enumerate here.
+            # It must stay open so that following paragraphs belong to the same \item.
+            # We'll close it only when we hit a real boundary (headers/hr/figure/bullets/EOF)
+            # or an explicit "blank-line + next is not enum" rule elsewhere.
+
             i += 1
             continue
-        else:
-            # close enumerate if current line is not an enum item
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
 
         # --- bullet list item: "- text" / "* text" ---
         m_b = _BULLET_MD_RE.match(ln)
         if m_b:
+            if in_enum:
+                out.append(r"\end{enumerate}")
+                in_enum = False
+
             if not in_itemize:
                 out.append(r"\begin{itemize}")
                 in_itemize = True
 
             txt = (m_b.group("txt") or "").strip()
+            txt = _replace_cites(txt)
             out.append(r"\item " + _sanitize_preserving_math(txt))
             i += 1
             continue
@@ -338,6 +605,7 @@ def md_to_tex(md: str) -> str:
         # --- normal text line ---
         ln2 = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", ln)
         ln2 = re.sub(r"\*(.+?)\*", r"\\emph{\1}", ln2)
+        ln2 = _replace_cites(ln2)
         out.append(_sanitize_preserving_math(ln2))
         i += 1
 
@@ -359,14 +627,101 @@ def iter_notebooks() -> Iterable[Path]:
             continue
         yield nb
 
+_CYR_MAP = str.maketrans({
+    "к": "k", "п": "p", "К": "K", "П": "P",
+    "р": "r", "с": "s", "т": "t",
+    "м": "m", "М": "M",
+    "а": "a", "е": "e", "о": "o", "О": "O",
+    "н": "n", "Н": "N",
+    "в": "v", "В": "V",
+    "и": "i", "И": "I",
+    "л": "l", "Л": "L",
+    "д": "d", "Д": "D",
+    "у": "u", "У": "U",
+    "я": "ya", "Ю": "Yu", "ю": "yu",
+    "ж": "zh", "Ж": "Zh",
+    "ч": "ch", "Ч": "Ch",
+    "ш": "sh", "Ш": "Sh",
+    "щ": "shch", "Щ": "Shch",
+    "ь": "", "ъ": "",
+    "й": "y", "Й": "Y",
+})
+
+def _sanitize_code_for_listings(src: str) -> str:
+    src = (
+        src.replace("\u2014", "--")
+           .replace("\u2013", "-")
+           .replace("\u2212", "-")
+           .replace("\u2026", "...")
+           .replace("\u00a0", " ")
+           .replace("\u200b", "")
+    )
+    # kill Cyrillic in code listings (pdfLaTeX+listings limitation)
+    src = src.translate(_CYR_MAP)
+    # if anything non-ascii still remains, replace it safely
+    src = src.encode("ascii", "replace").decode("ascii")
+    return src
+
+def _nb_id_lang_from_stem(nb_stem: str, default_lang: str = "en") -> tuple[str, str]:
+    m = re.match(r"^(?P<id>.+?)_(?P<lang>EN|RU)$", nb_stem)
+    if m:
+        return m.group("id"), m.group("lang").lower()
+    return nb_stem, default_lang
+
+
 def extract_markdown_cells(nb_path: Path) -> str:
     data = json.loads(nb_path.read_text(encoding="utf-8"))
     chunks: list[str] = []
 
-    for cell in data.get("cells", []):
-        if cell.get("cell_type") == "markdown":
+    # collect used citation keys across MARKDOWN of this notebook
+    used: set[str] = set()
+
+    bib = _parse_bibtex(REFS_BIB)
+
+    # guess notebook/lang once (your helper already exists)
+    nb_id_guess, lang_guess = _detect_notebook_and_lang(
+        "", nb_stem=nb_path.stem, default_lang="en"
+    )
+
+    for cell_idx, cell in enumerate(data.get("cells", [])):
+        ctype = cell.get("cell_type")
+
+        if ctype == "markdown":
             src = "".join(cell.get("source", []))
-            chunks.append(md_to_tex(src))
+
+            # NOTEBOOK id is usually without _EN/_RU suffix in filenames:
+            # ACAP_001_EN.ipynb -> nb_id = ACAP_001, lang = en
+            m = re.match(r"^(?P<id>.+?)_(?P<lang>EN|RU)$", nb_path.stem, flags=re.IGNORECASE)
+            if m:
+                nb_id_guess = m.group("id")
+                lang_guess = m.group("lang").lower()
+            else:
+                nb_id_guess = nb_path.stem
+                lang_guess = "en"
+
+            chunks.append(
+                md_to_tex(
+                    src,
+                    nb_id=nb_id_guess,
+                    lang=lang_guess,
+                    used_cite_keys=used,
+                    bib=bib,
+                )
+            )
+            continue
+
+        elif ctype == "code" and INCLUDE_CODE_CELLS:
+            src = "".join(cell.get("source", []))
+            if src.strip():
+                src = _sanitize_code_for_listings(src)
+                chunks.append("\\begin{lstlisting}\n" + src.rstrip() + "\n\\end{lstlisting}")
+
+    # append bibliography (only if we cited something)
+    bib = _parse_bibtex(REFS_BIB)
+    used_sorted = sorted(used)
+    bib_block = _build_thebibliography(used_sorted, bib)
+    if bib_block:
+        chunks.append(bib_block)
 
     return "\n\n".join(chunks).strip() + "\n"
 
