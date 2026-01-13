@@ -10,3 +10,15 @@ TERM_001_RU/EN - Term 1 (1..N)
 NOTE_001_RU/EN - Note on Term 1
 TOP_001_RU/EN - Topic
 MISC_001_RU/EN - Miscellaneous
+
+
+Picture pipeline:
+for assets:
+![Pipeline overview of the processing steps.](assets/pipeline_acap_002.png)
+
+for generated images:
+*Figure N.* Caption.
+file should exist in figures directory as 	
+figures/en/ACAP_002_Figure_N.png (or jpg/pdf)
+figures/ru/ACAP_002_Figure_N.png (or jpg/pdf)
+

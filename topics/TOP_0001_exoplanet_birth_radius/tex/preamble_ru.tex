@@ -7,9 +7,9 @@
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}   % safe with pdfLaTeX; harmless on modern TeX
 \usepackage{lmodern}
-
-% ---------- Language ----------
-\usepackage[russian,english]{babel}
+\usepackage[russian, english]{babel}
+\usepackage{cmap}
+\usepackage{tempora}
 
 % ---------- Math / symbols ----------
 \usepackage{amsmath}
@@ -35,9 +35,6 @@
 
 % ---------- Optional: nicer lists ----------
 \usepackage{enumitem}
-
-% ---------- Optional: captions ----------
-\usepackage{caption}
 
 % ---------- Core (reusable) TeX macros / styles ----------
 % Language-specific stuff stays here; reusable parts may live in core.
@@ -82,3 +79,20 @@
   tabsize=2,
   captionpos=b
 }
+
+\usepackage{tabularx}
+
+
+\addto\captionsrussian{%
+  \renewcommand{\figurename}{Рисунок}%
+  \renewcommand{\tablename}{Таблица}%
+}
+
+% --- force Russian caption names (even if caption package overrides babel) ---
+\usepackage{caption}
+
+\captionsetup[figure]{name=Рисунок}
+\captionsetup[table]{name=Таблица}
+
+% make sure russian is the active language
+\AtBeginDocument{\selectlanguage{russian}}

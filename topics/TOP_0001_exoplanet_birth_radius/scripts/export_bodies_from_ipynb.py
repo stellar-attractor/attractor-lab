@@ -74,6 +74,23 @@ UNICODE_TO_LATEX = {
     "👉": r"$begin:math:text$\rightarrow$end:math:text$ ",
     "🌌": r"\textbf{[SPACE]} ",
     "☉": r"$begin:math:text$\odot$end:math:text$",
+
+    # math
+    "∈": r"$\in$",
+    "∉": r"$\notin$",
+    "⊆": r"$\subseteq$",
+    "⊇": r"$\supseteq$",
+    "⊂": r"$\subset$",
+    "⊃": r"$\supset$",
+    "∪": r"$\cup$",
+    "∩": r"$\cap$",
+    "∅": r"$\emptyset$",
+    "≡": r"$\equiv$",
+    "∝": r"$\propto$",
+    "∑": r"$\sum$",
+    "∏": r"$\prod$",
+    "∂": r"$\partial$",
+    "∇": r"$\nabla$",
 }
 
 LATEX_SPECIALS = {
@@ -141,15 +158,25 @@ def _sanitize_non_math(t: str) -> str:
 _MATH_INLINE_OR_DISPLAY_RE = re.compile(r"(\$\$.*?\$\$|\$.*?\$)", re.DOTALL)
 
 _SUBSCRIPT_WORD_RE = re.compile(r"_(?!\{)([A-Za-z]{2,})\b")  # _ISM, _birth
+# Unicode subscript parentheses: ₍ISM₎ -> _{\mathrm{ISM}}
+_UNICODE_SUB_PAREN_RE = re.compile(r"₍\s*([^₎]+?)\s*₎")
+
 
 def _fix_math(s: str) -> str:
-    # fix: _word -> _{\mathrm{word}}
+    # 1) fix: _word -> _{\mathrm{word}}
     def repl(m: re.Match) -> str:
         word = m.group(1)
         return r"_{\mathrm{" + word + "}}"
+
     s = _SUBSCRIPT_WORD_RE.sub(repl, s)
 
-    # units / tokens inside math
+    # 2) fix: unicode subscript parentheses ₍ISM₎
+    s = _UNICODE_SUB_PAREN_RE.sub(
+        lambda m: r"_{\mathrm{" + m.group(1).strip() + "}}",
+        s,
+    )
+
+    # 3) units / tokens inside math
     s = s.replace("dex", r"\mathrm{dex}")
     s = s.replace("kpc", r"\mathrm{kpc}")
 
@@ -356,9 +383,45 @@ _BULLET_MD_RE = re.compile(r"^\s*[-*]\s+(?P<txt>.+?)\s*$")
 _HR_MD_RE = re.compile(r"^\s*---+\s*$")
 
 _FIG_INLINE_LINE_RE = re.compile(
-    r"^\s*\*?\s*(?:Figure|Fig\.?)\s+(?P<num>\d+)\.\s*\*?\s*(?P<rest>.*?)\s*\*?\s*$",
-    re.IGNORECASE,
+    r"""
+^\s*\*?\s*
+(?:Figure|Fig\.?|Рисунок|Рис\.)
+\s+
+(?P<num>\d+)
+\s*(?:[.\-–—]+)?\s*
+\*?\s*(?P<rest>.*?)\s*\*?\s*$
+""",
+    re.IGNORECASE | re.VERBOSE,
 )
+
+FIG_LABEL = {
+    "en": "Figure",
+    "ru": "Рисунок",
+}
+
+# =============================================================================
+# Markdown → Tables
+# =============================================================================
+
+_MD_TABLE_ROW_RE = re.compile(r"^\s*\|(.+)\|\s*$")
+_MD_TABLE_SEP_RE = re.compile(r"^\s*\|\s*[-: ]+\|\s*$")
+
+
+
+# =============================================================================
+# Markdown → Bold in lists
+# =============================================================================
+
+def _md_inline_to_tex(s: str) -> str:
+    s = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", s)
+    s = re.sub(r"\*(.+?)\*", r"\\emph{\1}", s)
+    return s
+
+
+# =============================================================================
+# Markdown → LaTeX main procedure
+# =============================================================================
+    
 
 def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | None = None, bib: dict[str, dict[str, str]],) -> str:
     lines = md.splitlines()
@@ -420,6 +483,7 @@ def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | Non
 
             txt = (m_enum.group(2) or "").strip()
             txt = _replace_cites(txt)
+            txt = _md_inline_to_tex(txt) 
             out.append(r"\item " + _sanitize_preserving_math(txt))
 
             # IMPORTANT:
@@ -437,6 +501,76 @@ def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | Non
             out.append(r"\noindent\rule{\linewidth}{0.4pt}")
             i += 1
             continue
+
+        # --- markdown table ---
+        if _MD_TABLE_ROW_RE.match(ln):
+            # close lists before table
+            if in_itemize:
+                out.append(r"\end{itemize}")
+                in_itemize = False
+            if in_enum:
+                out.append(r"\end{enumerate}")
+                in_enum = False
+
+            rows = []
+            header = None
+
+            # collect table lines
+            j = i
+            while j < len(lines):
+                line = lines[j].rstrip()
+                # separator like: |-----|:---:|----:|
+                if _MD_TABLE_SEP_RE.match(line):
+                    j += 1
+                    continue
+
+                if _MD_TABLE_ROW_RE.match(line):
+                    cells = [c.strip() for c in line.strip("|").split("|")]
+
+                    # NEW: if it *looks* like a header-separator row, skip it
+                    is_sep = True
+                    for c in cells:
+                        c = c.strip()
+                        if not c or ("-" not in c) or (set(c) - set("-:")):
+                            is_sep = False
+                            break
+                    if is_sep:
+                        j += 1
+                        continue
+
+                    rows.append(cells)
+                    j += 1
+                    continue
+
+                break
+
+            if rows:
+                header = rows[0]
+                body = rows[1:]
+
+                ncol = len(header)
+
+                # first column narrow (file names), rest stretch
+                coldef = "l" + "X" * (ncol - 1)
+
+                out.append(r"\begin{table}[!ht]")
+                out.append(r"\centering")
+                out.append(r"\begin{tabularx}{\linewidth}{" + coldef + r"}")                
+                out.append(" & ".join(sanitize_tex(h) for h in header) + r" \\")
+                out.append(r"\hline")
+
+                for r in body:
+                    out.append(
+                        " & ".join(_sanitize_preserving_math(c) for c in r) + r" \\"
+                    )
+
+                out.append(r"\hline")
+                out.append(r"\end{tabularx}")
+                out.append(r"\end{table}")
+
+            i = j
+            continue
+
 
         # --- markdown image: ![alt](path) ---
         m = _IMG_MD_RE.match(ln)
@@ -473,53 +607,46 @@ def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | Non
                 i += 1
             continue
 
-        # --- inline figure reference line: "*Figure 1.* ..." / "Figure 1. ..." / "*Fig. 1.* ..." ---
+        # --- inline figure caption line: "*Figure 1.* ..." or "Figure 1. ..." ---
+        # AUTO-NUMBERING MODE:
+        # - we DO NOT print "Figure N" as text
+        # - we use the line as caption text (without N)
+        # - if matching figure file exists, we insert it here
         mfig = _FIG_INLINE_LINE_RE.match(ln)
         if mfig:
-            _close_lists()
+            # close lists before inserting a figure
+            if in_itemize:
+                out.append(r"\end{itemize}")
+                in_itemize = False
+            if in_enum:
+                out.append(r"\end{enumerate}")
+                in_enum = False
 
             num = mfig.group("num")
-            rest = (mfig.group("rest") or "").strip()
-            rest = rest.rstrip("*").strip()
+            cap = (mfig.group("rest") or "").strip()
+            cap = cap.rstrip("*").strip()  # tolerate trailing '*'
 
-            # Support BOTH naming conventions we saw in your repo:
-            #   ACAP_001_Figure_1.png  (save_fig0 convention)
-            #   ACAP_001_figure_1.png  (older md refs)
-            name_variants = [
-                f"{nb_id}_Figure_{num}",
-                f"{nb_id}_figure_{num}",
+            fig_candidates = [
+                TOPIC_DIR / "figures" / lang / f"{nb_id}_Figure_{num}.png",
+                TOPIC_DIR / "figures" / lang / f"{nb_id}_Figure_{num}.jpg",
+                TOPIC_DIR / "figures" / lang / f"{nb_id}_Figure_{num}.pdf",
             ]
-            ext_variants = ["png", "jpg", "pdf"]
+            fig_path = next((p for p in fig_candidates if p.exists()), None)
 
-            fig_path = None
-            for base in name_variants:
-                for ext in ext_variants:
-                    p = TOPIC_DIR / "figures" / lang / f"{base}.{ext}"
-                    if p.exists():
-                        fig_path = p
-                        break
-                if fig_path is not None:
-                    break
-
-            if fig_path is not None:
+            if fig_path:
                 rel = "../" + fig_path.relative_to(TOPIC_DIR).as_posix()
-
                 out.append(r"\begin{figure}[!ht]")
                 out.append(r"\centering")
                 out.append(r"\includegraphics[width=\linewidth]{" + rel + "}")
-
-                # put caption into \caption{} (systematic TeX)
-                if rest:
-                    rest2 = _replace_cites(rest)
-                    out.append(r"\caption{" + _sanitize_preserving_math(rest2) + "}")
-                else:
-                    out.append(r"\caption{Figure " + num + "}")
-
+                if cap:
+                    cap2 = _replace_cites(cap)
+                    out.append(r"\caption{" + _sanitize_preserving_math(cap2) + "}")
                 out.append(r"\end{figure}")
             else:
-                # fallback: keep as text (but still sanitize + cites)
-                ln3 = _replace_cites(ln)
-                out.append(_sanitize_preserving_math(ln3))
+                # no image found -> keep caption as plain emphasized text (WITHOUT number)
+                if cap:
+                    cap2 = _replace_cites(cap)
+                    out.append(r"\emph{" + _sanitize_preserving_math(cap2) + "}")
 
             i += 1
             continue
@@ -558,43 +685,58 @@ def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | Non
         # --- enumerated list item: "1. text" ---
         m_enum = _ENUM_MD_RE.match(ln)
         if m_enum:
-            # close itemize if we switch to enumerate
+            # if we are entering a new enum item, close nested bullets first
             if in_itemize:
                 out.append(r"\end{itemize}")
                 in_itemize = False
 
-            # open enumerate once
             if not in_enum:
                 out.append(r"\begin{enumerate}")
                 in_enum = True
 
             txt = (m_enum.group(2) or "").strip()
             txt = _replace_cites(txt)
+            txt = _md_inline_to_tex(txt)
             out.append(r"\item " + _sanitize_preserving_math(txt))
 
-            # IMPORTANT:
-            # Do NOT close enumerate here.
-            # It must stay open so that following paragraphs belong to the same \item.
-            # We'll close it only when we hit a real boundary (headers/hr/figure/bullets/EOF)
-            # or an explicit "blank-line + next is not enum" rule elsewhere.
+            # DO NOT close enumerate if next block is bullets or continuation text
+            j = i + 1
+            while j < len(lines) and lines[j].strip() == "":
+                j += 1
+
+            if j >= len(lines):
+                out.append(r"\end{enumerate}")
+                in_enum = False
+            else:
+                nxt = lines[j].rstrip()
+                # keep enumerate open if:
+                #  - next line is another enum item
+                #  - next line is a bullet item (nested list)
+                #  - next line is indented (continuation paragraph for current item)
+                if not (
+                    _ENUM_MD_RE.match(nxt)
+                    or _BULLET_MD_RE.match(nxt)
+                    or (len(nxt) - len(nxt.lstrip()) >= 2)
+                ):
+                    out.append(r"\end{enumerate}")
+                    in_enum = False
 
             i += 1
             continue
 
-        # --- bullet list item: "- text" / "* text" ---
+        # --- bullet point: "- text" / "* text" ---
         m_b = _BULLET_MD_RE.match(ln)
         if m_b:
-            if in_enum:
-                out.append(r"\end{enumerate}")
-                in_enum = False
-
+            # bullets can be nested inside enumerate -> do NOT close enumerate here
             if not in_itemize:
                 out.append(r"\begin{itemize}")
                 in_itemize = True
 
             txt = (m_b.group("txt") or "").strip()
             txt = _replace_cites(txt)
+            txt = _md_inline_to_tex(txt)
             out.append(r"\item " + _sanitize_preserving_math(txt))
+            
             i += 1
             continue
         else:
@@ -603,8 +745,7 @@ def md_to_tex( md: str, *, nb_id: str, lang: str, used_cite_keys: set[str] | Non
                 in_itemize = False
 
         # --- normal text line ---
-        ln2 = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", ln)
-        ln2 = re.sub(r"\*(.+?)\*", r"\\emph{\1}", ln2)
+        ln2 = _md_inline_to_tex(ln)
         ln2 = _replace_cites(ln2)
         out.append(_sanitize_preserving_math(ln2))
         i += 1

@@ -1351,3 +1351,248 @@ When all notebooks compile:
   - optionally: built PDFs in `build/`
 
 ---
+
+# 2026-01-13 14:38
+
+# Engineering Log  
+## Jupyter → Markdown → LaTeX → PDF Pipeline
+
+**Project:** Stellar Attractor / Outpost #32  
+**Topics:** ACAP_*, ANIM_* (EN / RU)  
+**Last updated:** 2026-01-13
+
+---
+
+## 1. Scope
+
+This document records engineering decisions, fixes, and architectural choices behind the custom pipeline:
+
+Jupyter Notebook (.ipynb)  
+→ custom Markdown parsing  
+→ LaTeX body generation  
+→ latexmk / pdflatex  
+→ final PDF
+
+The primary goal is full control and reproducibility, without relying on Pandoc or nbconvert heuristics.
+
+---
+
+## 2. Core design decision
+
+We intentionally implemented a custom Markdown → LaTeX parser instead of using nbconvert or Pandoc in order to:
+
+- preserve scientific formatting exactly  
+- control figures, tables, math, and lists explicitly  
+- avoid hidden transformations and silent failures  
+- support bilingual (EN / RU) output consistently  
+
+Given the number of edge cases encountered, this decision proved correct.
+
+---
+
+## 3. Markdown → LaTeX parser (md_to_tex)
+
+### Supported features
+
+- Headings `#` … `#####`  
+  mapped to `\section*`, `\subsection*`, `\subsubsection*`
+- Enumerated lists and bullet lists  
+  including nested and mixed structures
+- Inline formatting  
+  `**bold**`, `*italic*`
+- Horizontal rules (`---`)
+- Inline math `$...$` and display math `$$...$$`
+- Citations `[@key]`
+- Images and figures
+- Tables (Markdown → `tabularx`)
+
+---
+
+## 4. Lists and numbering
+
+### Problems encountered
+
+- Enumerated lists breaking when mixed with bullet lists  
+- Enumeration restarting unexpectedly  
+- Inline bold / italic lost inside numbered items  
+
+### Final solution
+
+- Enumerations remain open until a real structural boundary:
+  - header
+  - horizontal rule
+  - figure
+  - end of file
+- Bullet lists may be nested inside enumerations
+- Inline formatting is applied before sanitization
+
+Result: stable numbering and formatting identical to notebook intent.
+
+---
+
+## 5. Figures — unified logic
+
+Two figure classes are supported by design.
+
+### 5.1 Asset figures
+
+Used for pipelines, schematics, static illustrations.
+
+Markdown syntax:
+
+![Pipeline overview](assets/pipeline_acap_002.png)
+
+Behavior:
+
+- Inserted verbatim
+- Caption taken from alt text or following caption line
+- Uses LaTeX auto-numbering
+- Does not interfere with generated figure numbering
+
+---
+
+### 5.2 Generated figures (ACAP / ANIM)
+
+Notebook text:
+
+*Figure 3.* Caption text
+
+Resolution logic:
+
+- Resolved against disk:
+  figures/{lang}/{NOTEBOOK}_Figure_3.(png|jpg|pdf)
+- Inserted exactly at text position
+- Caption text reused
+
+Figure numbering is explicit by design to avoid ambiguity.
+
+---
+
+## 6. Tables
+
+Markdown tables are rendered using `tabularx`:
+
+- Full page width (`\linewidth`)
+- First column fixed, remaining columns stretch (`X`)
+- Inline math preserved
+- No duplicate rules or stray lines
+
+---
+
+## 7. Citations and bibliography
+
+### Inline citations
+
+Markdown:
+
+[@teixeira2024exoplanets]
+
+LaTeX:
+
+\cite{teixeira2024exoplanets}
+
+### Bibliography handling
+
+- Parsed from `refs/references.bib`
+- Only cited entries included
+- Single `References` section
+- Missing keys produce visible placeholders
+
+---
+
+## 8. Unicode and math robustness
+
+Multiple LaTeX failure sources were identified and fixed:
+
+- Unicode math symbols (`∈`, `⊆`, etc.)
+- Broken subscripts like `_ISM`
+- Fragmented math blocks causing “Missing $ inserted”
+
+### Strategy
+
+- Prefer fixing math explicitly in notebook source
+- Minimal automatic math rewriting
+- Sanitization rules for:
+  - subscripts
+  - units (`dex`, `kpc`)
+  - unsafe Unicode characters
+
+This significantly reduced LaTeX instability.
+
+---
+
+## 9. EN / RU parity
+
+### Issues fixed
+
+- Different section formatting between EN and RU
+- Missing bold / italic in RU
+- Missing font packages (e.g. cm-super)
+- Figure captions not localized
+
+### Result
+
+- EN and RU PDFs are visually consistent
+- Localized figure captions (`Figure` / `Рис.`)
+- Identical typography and hierarchy
+
+---
+
+## 10. Animations (ANIM notebooks)
+
+### Goal
+
+- Export animations (MP4 / GIF)
+- Extract a single static figure for PDF inclusion
+
+### Final solution
+
+A reusable helper function:
+
+save_last_frame(anim, "Figure_N")
+
+Properties:
+
+- Always captures the true final frame
+- Works with FuncAnimation
+- Independent of animation internals
+- Fully compatible with ACAP figure logic
+
+Used for:
+
+- HR diagram reveals
+- Metallicity histograms
+- Black-hole accretion disk simulations
+
+---
+
+## 11. Accepted constraints
+
+These constraints are intentional:
+
+- Figure numbering is explicit, not inferred
+- Asset figures must not be named `Figure_N`
+- Math correctness enforced primarily at notebook level
+- Parser is strict and fail-fast by design
+
+They keep the system predictable and maintainable.
+
+---
+
+## 12. Current status
+
+- ACAP notebooks: stable  
+- ANIM notebooks: stable  
+- EN / RU parity achieved  
+- LaTeX builds reproducible  
+
+The pipeline is ready for full batch processing and repository packaging.
+
+---
+
+## 13. Next steps
+
+1. Full regression run over all notebooks  
+2. Freeze parser and export scripts  
+3. Commit and push  
+4. Package repository for release  
