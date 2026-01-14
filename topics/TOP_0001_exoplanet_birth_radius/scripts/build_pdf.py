@@ -133,12 +133,12 @@ def sanitize_tex_unicode_math(tex: str) -> str:
         out = out.replace(u, repl)
 
     # --- extra problematic unicode (pdflatex) ---
-    out = out.replace("\u2060", "")            # WORD JOINER (invisible), e.g. "⁠."
-    out = out.replace("≈", r"\ensuremath{\approx}")       # U+2248
-    out = out.replace("\u200b", "")            # ZERO WIDTH SPACE
-    out = out.replace("\ufeff", "")            # BOM / ZERO WIDTH NO-BREAK SPACE
-    out = out.replace("−", "-")                # U+2212 minus -> ASCII hyphen-minus
-    out = out.replace("⊙", r"\ensuremath{\odot}")         # U+2299 solar symbol
+    out = out.replace("\u2060", "")                         # WORD JOINER (invisible)
+    out = out.replace("≈", r"\ensuremath{\approx}")         # U+2248
+    out = out.replace("\u200b", "")                         # ZERO WIDTH SPACE
+    out = out.replace("\ufeff", "")                         # BOM / ZERO WIDTH NO-BREAK SPACE
+    out = out.replace("−", "-")                             # U+2212 minus -> ASCII hyphen-minus
+    out = out.replace("⊙", r"\ensuremath{\odot}")           # U+2299 solar symbol
 
     return out
 
@@ -148,13 +148,8 @@ def sanitize_tex_headers(tex: str) -> str:
     Sanitizes known-dangerous characters in header-ish contexts (title/author/date/section).
     Most common pdflatex killer: unescaped '#'.
     """
-    # Escape # everywhere (safe default).
     tex = tex.replace("#", r"\#")
-
-    # Optional: make sure raw '&' doesn't break tabular alignment if it appears in plain text.
-    # If you DO want to use & in TeX intentionally, write it as \& in notebooks.
     tex = tex.replace("&", r"\&")
-
     return tex
 
 
@@ -175,20 +170,19 @@ def sanitize_tex_file_in_place(path: Path, *, headers: bool = False, unicode_mat
 
 def find_body_inputs_in_template(tpl_path: Path) -> list[Path]:
     """
-    Finds \input{..._body.tex} occurrences inside the template and returns resolved paths.
+    Finds \\input{..._body.tex} occurrences inside the template and returns resolved paths.
     Paths are resolved relative to TEX_DIR (because we compile with cwd=TEX_DIR).
     """
     txt = tpl_path.read_text(encoding="utf-8")
     inputs = re.findall(r"\\input\{([^}]*_body\.tex)\}", txt)
     resolved: list[Path] = []
     for rel in inputs:
-        # rel could be "_tmp/..." or "../_tmp/..." etc. We compile with cwd=TEX_DIR.
         resolved.append((TEX_DIR / rel).resolve())
     return resolved
 
 
 # -----------------------------------------------------------------------------
-# Failure logging (added)
+# Failure logging
 # -----------------------------------------------------------------------------
 
 FAIL_LOG = BUILD_DIR / "build_pdfs_failures.log"
@@ -243,11 +237,6 @@ def log_failure(
 # Build helpers
 # -----------------------------------------------------------------------------
 
-def run(cmd: list[str], cwd: Path | None = None, env: dict | None = None) -> None:
-    print("+ " + " ".join(cmd))
-    subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env, check=True)
-
-
 def latexmk_build(template_path: Path, jobname: str, texinputs_dir: Path) -> None:
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -268,6 +257,7 @@ def latexmk_build(template_path: Path, jobname: str, texinputs_dir: Path) -> Non
     print("+ " + " ".join(cmd))
     subprocess.run(cmd, cwd=str(TEX_DIR), env=env, check=True)
 
+
 def derive_jobname_from_tpl(tpl: Path) -> str:
     # "ACA_001_RU.tpl.tex" -> "ACA_001_RU"
     name = tpl.name
@@ -276,48 +266,73 @@ def derive_jobname_from_tpl(tpl: Path) -> str:
     return tpl.stem
 
 
-# -----------------------------------------------------------------------------
-# Main
-# -----------------------------------------------------------------------------
+def _split_patterns(pats: list[str] | None) -> list[str]:
+    if not pats:
+        return []
+    out: list[str] = []
+    for p in pats:
+        for part in p.split(","):
+            part = part.strip()
+            if part:
+                out.append(part)
+    return out
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Build ONLY ONE PDF from a single template.")
-    ap.add_argument("--tpl", default="AZ_001_EN.tpl.tex",
-                    help="Template filename inside TEX_DIR (e.g. AZ_001_EN.tpl.tex)")
-    ap.add_argument("--jobname", default=None,
-                    help="Override jobname (defaults derived from template name)")
-    ap.add_argument("--keep-fail-log", action="store_true",
-                    help="Do not reset failures log at start")
-    args = ap.parse_args()
 
+def discover_templates(*, tpl: str | None, patterns: list[str] | None) -> list[Path]:
+    """
+    Resolution rules:
+    - if --tpl given: build only that template (exact filename inside TEX_DIR)
+    - else if --pattern given: glob each pattern relative to TEX_DIR
+    - else: build all *.tpl.tex in TEX_DIR
+    """
     if not TEX_DIR.exists():
         raise FileNotFoundError(f"Missing TEX_DIR: {TEX_DIR}")
 
-    tpl = TEX_DIR / args.tpl
-    if not tpl.exists():
-        die = f"Missing template: {tpl}"
-        raise FileNotFoundError(die)
+    if tpl:
+        p = TEX_DIR / tpl
+        if not p.exists():
+            raise FileNotFoundError(f"Missing template: {p}")
+        return [p]
 
-    texinputs_dir = TEX_DIR
+    pats = _split_patterns(patterns)
+    if pats:
+        found: list[Path] = []
+        for pat in pats:
+            found.extend(sorted(TEX_DIR.glob(pat)))
+        # if user passed "ACAP_*.tpl.tex" etc, ok.
+        # also allow user to omit suffix and write "ACAP_*" -> we interpret literally (glob will match)
+        found = [p for p in found if p.is_file()]
+        # keep only tpl templates (avoid accidental matches)
+        found = [p for p in found if p.name.endswith(".tpl.tex")]
+        # de-dupe while preserving order
+        seen: set[Path] = set()
+        uniq: list[Path] = []
+        for p in found:
+            rp = p.resolve()
+            if rp not in seen:
+                seen.add(rp)
+                uniq.append(rp)
+        if not uniq:
+            raise FileNotFoundError(f"No templates matched patterns: {pats}")
+        return uniq
 
-    jobname = args.jobname or derive_jobname_from_tpl(tpl)
+    # default: all templates
+    all_tpls = sorted(TEX_DIR.glob("*.tpl.tex"))
+    return [p.resolve() for p in all_tpls]
 
-    # reset failure log each run (unless asked not to)
-    BUILD_DIR.mkdir(parents=True, exist_ok=True)
-    if not args.keep_fail_log:
-        with open(FAIL_LOG, "w", encoding="utf-8") as f:
-            f.write("build_one_pdf failures log\n")
-            f.write(f"TOPIC_DIR: {TOPIC_DIR}\n")
-            f.write(f"TEX_DIR  : {TEX_DIR}\n")
-            f.write(f"BUILD_DIR: {BUILD_DIR}\n")
-            f.write("=" * 90 + "\n")
 
-    # 1) sanitize template headers (protects \title{...} etc)
+def build_one_template(tpl: Path, *, jobname_override: str | None, texinputs_dir: Path) -> bool:
+    """
+    Returns True if built successfully, False if failed (and logged).
+    """
+    jobname = jobname_override or derive_jobname_from_tpl(tpl)
+
+    # 1) sanitize template headers
     changed_tpl = sanitize_tex_file_in_place(tpl, headers=True, unicode_math=False)
     if changed_tpl:
         print(f"Sanitized template headers: {tpl.name}")
 
-    # 2) sanitize any referenced body files for unicode math
+    # 2) sanitize referenced body files for unicode math
     body_paths = find_body_inputs_in_template(tpl)
     print("[BODY INPUTS]")
     for bp in body_paths:
@@ -335,7 +350,7 @@ def main() -> None:
         latexmk_build(tpl, jobname, texinputs_dir)
         print("\n[DONE]")
         print("PDF:", (BUILD_DIR / f"{jobname}.pdf").resolve())
-        return
+        return True
 
     except subprocess.CalledProcessError as e:
         log_path = BUILD_DIR / f"{jobname}.log"
@@ -362,7 +377,7 @@ def main() -> None:
         )
 
         print(f"\n[FAILED] {jobname} (see {log_path})")
-        raise SystemExit(1)
+        return False
 
     except Exception as e:
         log_path = BUILD_DIR / f"{jobname}.log"
@@ -389,7 +404,93 @@ def main() -> None:
         )
 
         print(f"\n[FAILED (python)] {jobname} (see {FAIL_LOG})")
+        return False
+
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+def main() -> None:
+    ap = argparse.ArgumentParser(
+        description="Build PDFs from one template, a pattern set, or all templates in TEX_DIR."
+    )
+    ap.add_argument(
+        "--tpl",
+        default=None,
+        help="Build only this template filename inside TEX_DIR (e.g. ACAP_001_EN.tpl.tex).",
+    )
+    ap.add_argument(
+        "--pattern",
+        action="append",
+        default=None,
+        help=(
+            "Glob pattern(s) relative to TEX_DIR. Can be repeated or comma-separated.\n"
+            "Examples: --pattern 'ACAP_*_EN.tpl.tex' --pattern 'ANIM_*.tpl.tex'\n"
+            "          --pattern 'ACAP_*.tpl.tex,ANIM_*.tpl.tex'"
+        ),
+    )
+    ap.add_argument(
+        "--jobname",
+        default=None,
+        help="Override jobname (ONLY meaningful with --tpl; ignored in batch mode).",
+    )
+    ap.add_argument(
+        "--keep-fail-log",
+        action="store_true",
+        help="Do not reset failures log at start.",
+    )
+    ap.add_argument(
+        "--stop-on-fail",
+        action="store_true",
+        help="Stop immediately on first failed PDF (default: continue batch).",
+    )
+    args = ap.parse_args()
+
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+
+    # reset failure log each run (unless asked not to)
+    if not args.keep_fail_log:
+        with open(FAIL_LOG, "w", encoding="utf-8") as f:
+            f.write("build_pdf failures log\n")
+            f.write(f"TOPIC_DIR: {TOPIC_DIR}\n")
+            f.write(f"TEX_DIR  : {TEX_DIR}\n")
+            f.write(f"BUILD_DIR: {BUILD_DIR}\n")
+            f.write("=" * 90 + "\n")
+
+    templates = discover_templates(tpl=args.tpl, patterns=args.pattern)
+    print("[TEMPLATES]")
+    for t in templates:
+        print(" -", t.name)
+
+    texinputs_dir = TEX_DIR
+
+    failed: list[str] = []
+    for tpl_path in templates:
+        print("\n" + "=" * 90)
+        print("BUILD:", tpl_path.name)
+        print("=" * 90)
+
+        # jobname override only makes sense for single-template build
+        job_override = args.jobname if (args.tpl and len(templates) == 1) else None
+
+        ok = build_one_template(tpl_path, jobname_override=job_override, texinputs_dir=texinputs_dir)
+        if not ok:
+            failed.append(derive_jobname_from_tpl(tpl_path))
+            if args.stop_on_fail:
+                break
+
+    if failed:
+        print("\n" + "=" * 90)
+        print("[SUMMARY] FAILED:")
+        for j in failed:
+            print(" -", j)
+        print("See:", FAIL_LOG.resolve())
         raise SystemExit(1)
+
+    print("\n" + "=" * 90)
+    print("[SUMMARY] ALL OK")
+    print("PDFs in:", BUILD_DIR.resolve())
 
 
 if __name__ == "__main__":

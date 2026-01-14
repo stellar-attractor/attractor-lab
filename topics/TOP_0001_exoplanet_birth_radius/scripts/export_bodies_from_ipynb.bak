@@ -158,15 +158,25 @@ def _sanitize_non_math(t: str) -> str:
 _MATH_INLINE_OR_DISPLAY_RE = re.compile(r"(\$\$.*?\$\$|\$.*?\$)", re.DOTALL)
 
 _SUBSCRIPT_WORD_RE = re.compile(r"_(?!\{)([A-Za-z]{2,})\b")  # _ISM, _birth
+# Unicode subscript parentheses: ₍ISM₎ -> _{\mathrm{ISM}}
+_UNICODE_SUB_PAREN_RE = re.compile(r"₍\s*([^₎]+?)\s*₎")
+
 
 def _fix_math(s: str) -> str:
-    # fix: _word -> _{\mathrm{word}}
+    # 1) fix: _word -> _{\mathrm{word}}
     def repl(m: re.Match) -> str:
         word = m.group(1)
         return r"_{\mathrm{" + word + "}}"
+
     s = _SUBSCRIPT_WORD_RE.sub(repl, s)
 
-    # units / tokens inside math
+    # 2) fix: unicode subscript parentheses ₍ISM₎
+    s = _UNICODE_SUB_PAREN_RE.sub(
+        lambda m: r"_{\mathrm{" + m.group(1).strip() + "}}",
+        s,
+    )
+
+    # 3) units / tokens inside math
     s = s.replace("dex", r"\mathrm{dex}")
     s = s.replace("kpc", r"\mathrm{kpc}")
 
@@ -373,9 +383,21 @@ _BULLET_MD_RE = re.compile(r"^\s*[-*]\s+(?P<txt>.+?)\s*$")
 _HR_MD_RE = re.compile(r"^\s*---+\s*$")
 
 _FIG_INLINE_LINE_RE = re.compile(
-    r"^\s*\*?\s*(?:Figure|Fig\.?)\s+(?P<num>\d+)\s*\.?\s*\*?\s*(?P<rest>.*?)\s*\*?\s*$",
-    re.IGNORECASE,
+    r"""
+^\s*\*?\s*
+(?:Figure|Fig\.?|Рисунок|Рис\.)
+\s+
+(?P<num>\d+)
+\s*(?:[.\-–—]+)?\s*
+\*?\s*(?P<rest>.*?)\s*\*?\s*$
+""",
+    re.IGNORECASE | re.VERBOSE,
 )
+
+FIG_LABEL = {
+    "en": "Figure",
+    "ru": "Рисунок",
+}
 
 # =============================================================================
 # Markdown → Tables

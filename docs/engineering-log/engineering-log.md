@@ -1596,3 +1596,120 @@ The pipeline is ready for full batch processing and repository packaging.
 2. Freeze parser and export scripts  
 3. Commit and push  
 4. Package repository for release  
+
+# Engineering Log — Notebook → PDF Pipeline (Final)
+
+## Status
+**COMPLETE.**  
+The core engineering work is finished. The pipeline is stable, reproducible, and ready for scaling across all notebooks.
+
+All remaining work is **content-level only**: text refinement, figure captions, translations, and regeneration of selected figures.
+
+---
+
+## What Was Built
+
+A **fully deterministic pipeline** that converts curated Jupyter notebooks into production-quality PDFs via LaTeX, with explicit control over what gets published.
+
+### Core Components
+
+1. **Notebook → LaTeX body exporter**
+   - Parses markdown, math, tables, figures, lists, and references
+   - Handles:
+     - nested lists (enumerate + itemize)
+     - figures (assets + generated)
+     - tables with automatic width fitting
+     - citations via `[@key]`
+     - bilingual (EN / RU) content
+   - Outputs `_tmp/*_body.tex`
+
+2. **Template-driven PDF build system**
+   - Only `*.tpl.tex` files define publishable documents
+   - No template → no PDF (by design)
+   - Supports:
+     - single template build
+     - pattern-based builds
+     - full batch builds
+
+3. **Robust LaTeX sanitization**
+   - Unicode → LaTeX math normalization
+   - Header-safe escaping
+   - pdflatex-compatible output (no XeLaTeX dependency)
+   - Automatic cleanup of problematic symbols discovered in real notebooks
+
+4. **Figure handling**
+   - Asset images (`assets/`) placed inline via markdown
+   - Generated figures saved explicitly (`savefig0`)
+   - Automatic figure insertion at correct logical positions
+   - LaTeX auto-numbering used where appropriate
+   - Language-aware captions (Figure / Рис.)
+
+5. **Animations → static figures**
+   - Animations saved as MP4/GIF
+   - Final animation frame automatically extracted and saved
+   - Static figure seamlessly reused by the PDF pipeline
+   - One universal helper → no per-notebook hacks
+
+6. **Bibliography**
+   - Central `references.bib`
+   - Citations written as `[@key]` in markdown
+   - Only actually cited entries appear in References
+   - Single References section, no duplication
+
+7. **Failure diagnostics**
+   - Centralized failure log
+   - Tail of LaTeX log included automatically
+   - Build never fails silently
+
+---
+
+## Key Design Decisions (That Paid Off)
+
+- **Templates are the gatekeepers**  
+  Publication is explicit, intentional, and version-controlled.
+
+- **No “magic” notebook scanning**  
+  Predictability beats convenience.
+
+- **pdflatex-first approach**  
+  Avoids font, encoding, and environment fragility.
+
+- **Content ≠ engineering**  
+  Once the pipeline works, content iteration is cheap.
+
+---
+
+## What’s Left (Non-Engineering)
+
+- Polish notebook text
+- Regenerate or renumber selected figures
+- Improve captions
+- Translate remaining notebooks
+- Run batch builds and review PDFs
+
+No structural changes are expected.
+
+---
+
+## Release Notes
+
+This is effectively **Release 1.0** of the PDF build pipeline.
+
+Recommended next steps:
+- Tag repository (`v1.0`)
+- Freeze pipeline code
+- Treat notebooks as content, not infrastructure
+- Add CI later *only if needed*
+
+---
+
+## Final Note
+
+This is no longer a “script”.
+
+It is a **small, purpose-built publishing system**:
+- deterministic
+- scalable
+- boring in the best possible way
+
+Congratulations — this one is a win. 🏆
